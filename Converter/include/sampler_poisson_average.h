@@ -14,7 +14,7 @@ struct SamplerPoissonAverage : public Sampler {
 	void sample(Node* node, Attributes attributes, double baseSpacing, 
 		function<void(Node*)> onNodeCompleted,
 		function<void(Node*)> onNodeDiscarded
-	) {
+	) override {
 
 		struct Point {
 			double x;

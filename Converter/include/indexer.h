@@ -379,9 +379,9 @@ namespace indexer{
 
 	class punct_facet : public std::numpunct<char> {
 	protected:
-		char do_decimal_point() const { return '.'; };
-		char do_thousands_sep() const { return '\''; };
-		string do_grouping() const { return "\3"; }
+		char do_decimal_point() const override { return '.'; };
+		char do_thousands_sep() const override { return '\''; };
+		string do_grouping() const override { return "\3"; }
 	};
 
 	void doIndexing(string targetDir, State& state, Options& options, Sampler& sampler);
