@@ -105,8 +105,8 @@ inline uint64_t mortonEncode_magicbits(unsigned int x, unsigned int y, unsigned 
 
 inline BoundingBox childBoundingBoxOf(Vector3 min, Vector3 max, int index) {
 	BoundingBox box;
-	auto size = max - min;
-	Vector3 center = min + (size * 0.5);
+	const auto size = max - min;
+	const Vector3 center = min + (size * 0.5);
 
 	if ((index & 0b100) == 0) {
 		box.min.x = min.x;

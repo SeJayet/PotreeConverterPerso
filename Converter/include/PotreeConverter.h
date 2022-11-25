@@ -28,7 +28,7 @@ struct ScaleOffset {
 
 inline ScaleOffset computeScaleOffset(Vector3 min, Vector3 max, Vector3 targetScale) {
 
-	Vector3 center = (min + max) / 2.0;
+	const Vector3 center = (min + max) / 2.0;
 	
 	// using the center as the origin would be the "right" choice but 
 	// it would lead to negative integer coordinates.
@@ -36,15 +36,15 @@ inline ScaleOffset computeScaleOffset(Vector3 min, Vector3 max, Vector3 targetSc
 	// we can't do that and we use 0/0/0 as the bounding box minimum as the origin instead.
 	//Vector3 offset = center;
 
-	Vector3 offset = min;
+	const Vector3 offset = min;
 	Vector3 scale = targetScale;
-	Vector3 size = max - min;
+	const Vector3 size = max - min;
 
 	// we can only use 31 bits because of the int/uint mistake in Potree 1.7
 	// And we only use 30 bits to be on the safe sie.
-	double min_scale_x = size.x / pow(2.0, 30.0);
-	double min_scale_y = size.y / pow(2.0, 30.0);
-	double min_scale_z = size.z / pow(2.0, 30.0);
+	const double min_scale_x = size.x / pow(2.0, 30.0);
+	const double min_scale_y = size.y / pow(2.0, 30.0);
+	const double min_scale_z = size.z / pow(2.0, 30.0);
 
 	scale.x = std::max(scale.x, min_scale_x);
 	scale.y = std::max(scale.y, min_scale_y);
@@ -87,13 +87,13 @@ inline vector<Attribute> parseExtraAttributes(LasHeader& header) {
 			auto extraData = vlr.data;
 
 			constexpr int recordSize = 192;
-			int numExtraAttributes = extraData.size() / recordSize;
+			const int numExtraAttributes = extraData.size() / recordSize;
 
 			for (int i = 0; i < numExtraAttributes; i++) {
 
-				int offset = i * recordSize;
-				uint8_t type = read<uint8_t>(extraData, offset + 2);
-				uint8_t options = read<uint8_t>(extraData, offset + 3);
+				const int offset = i * recordSize;
+				const uint8_t type = read<uint8_t>(extraData, offset + 2);
+				const uint8_t options = read<uint8_t>(extraData, offset + 3);
 				
 				char chrName[32];
 				memcpy(chrName, extraData.data() + offset + 4, 32);
@@ -112,11 +112,11 @@ inline vector<Attribute> parseExtraAttributes(LasHeader& header) {
 				memcpy(chrDescription, extraData.data() + offset + 160, 32);
 				string description(chrDescription);
 
-				auto info = lasTypeInfo(type);
+				const auto info = lasTypeInfo(type);
 				string typeName = getAttributeTypename(info.type);
-				int elementSize = getAttributeTypeSize(info.type);
+				const int elementSize = getAttributeTypeSize(info.type);
 
-				int size = info.numElements * elementSize;
+				const int size = info.numElements * elementSize;
 				Attribute xyz(name, size, info.numElements, elementSize, info.type);
 				xyz.description = description;
 				xyz.scale = aScale;
@@ -134,7 +134,7 @@ inline vector<Attribute> parseExtraAttributes(LasHeader& header) {
 
 
 inline vector<Attribute> computeOutputAttributes(LasHeader& header) {
-	auto format = header.pointDataFormat;
+	const auto format = header.pointDataFormat;
 
 	Attribute xyz("position", 12, 3, 4, AttributeType::INT32);
 	Attribute intensity("intensity", 2, 1, 2, AttributeType::UINT16);
@@ -207,7 +207,7 @@ inline Attributes computeOutputAttributes(vector<Source>& sources, vector<string
 	// compute scale and offset from all sources
 	{
 		mutex mtx;
-		auto parallel = std::execution::par;
+		constexpr auto parallel = std::execution::par;
 		for_each(parallel, sources.begin(), sources.end(), [&mtx, &sources, &scaleMin, &min, &max, requestedAttributes, &fullAttributeList, &acceptedAttributeNames](Source source) {
 
 			auto header = loadLasHeader(source.path);
@@ -320,10 +320,10 @@ inline string toString(Attributes& attributes){
 
 	ss << endl << "output attributes: " << endl;
 
-	int c0 = 30;
-	int c1 = 10;
-	int c2 = 8;
-	int ct = c0 + c1 + c2;
+	constexpr int c0 = 30;
+	constexpr int c1 = 10;
+	constexpr int c2 = 8;
+	constexpr int ct = c0 + c1 + c2;
 
 	ss << rightPad("name", c0) << leftPad("offset", c1) << leftPad("size", c2) << endl;
 	ss << string(ct, '=') << endl;

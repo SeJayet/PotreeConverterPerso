@@ -62,12 +62,12 @@ struct Node {
 		static mutex mtx;
 		lock_guard<mutex> lock(mtx);
 
-		int descendantLevel = descendant->name.size() - 1;
+		const int descendantLevel = descendant->name.size() - 1;
 
 		Node* current = this;
 
 		for (int level = 1; level < descendantLevel; level++) {
-			int index = descendant->name[level] - '0';
+			const int index = descendant->name[level] - '0';
 
 			if (current->children[index] != nullptr) {
 				current = current->children[index].get();
@@ -83,7 +83,7 @@ struct Node {
 			}
 		}
 
-		auto index = descendant->name[descendantLevel] - '0';
+		const auto index = descendant->name[descendantLevel] - '0';
 		current->children[index] = descendant;
 	}
 
@@ -126,10 +126,10 @@ struct Node {
 
 		Node* current = this;
 
-		int depth = name.size() - 1;
+		const int depth = name.size() - 1;
 
 		for(int level = 1; level <= depth; level++){
-			int index = name.at(level) - '0';
+			const int index = name.at(level) - '0';
 
 			current = current->children[index].get();
 		}

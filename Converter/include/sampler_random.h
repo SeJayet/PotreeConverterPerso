@@ -36,42 +36,42 @@ struct SamplerRandom : public Sampler {
 			callback(node);
 		};
 
-		int bytesPerPoint = attributes.bytes;
-		Vector3 scale = attributes.posScale;
-		Vector3 offset = attributes.posOffset;
+		const int bytesPerPoint = attributes.bytes;
+		const Vector3 scale = attributes.posScale;
+		const Vector3 offset = attributes.posOffset;
 
 		traversePost(node, [bytesPerPoint, baseSpacing, scale, offset, &onNodeCompleted, &onNodeDiscarded, attributes](Node* node) {
 			node->sampled = true;
 
-			int64_t numPoints = node->numPoints;
+			const int64_t numPoints = node->numPoints;
 
-			int64_t gridSize = 128;
+			constexpr int64_t gridSize = 128;
 			thread_local vector<int64_t> grid(gridSize* gridSize* gridSize, -1);
 			thread_local int64_t iteration = 0;
 			iteration++;
 
-			auto max = node->max;
-			auto min = node->min;
-			auto size = max - min;
-			auto scale = attributes.posScale;
-			auto offset = attributes.posOffset;
+			const auto max = node->max;
+			const auto min = node->min;
+			const auto size = max - min;
+			const auto scale = attributes.posScale;
+			const auto offset = attributes.posOffset;
 
 			struct CellIndex {
 				int64_t index = -1;
 				double distance = 0.0;
 			};
 
-			auto toCellIndex = [min, size, gridSize](Vector3 point) -> CellIndex {
+			const auto toCellIndex = [min, size, gridSize](Vector3 point) -> CellIndex {
 
-				double nx = (point.x - min.x) / size.x;
-				double ny = (point.y - min.y) / size.y;
-				double nz = (point.z - min.z) / size.z;
+				const double nx = (point.x - min.x) / size.x;
+				const double ny = (point.y - min.y) / size.y;
+				const double nz = (point.z - min.z) / size.z;
 
-				double lx = 2.0 * fmod(double(gridSize) * nx, 1.0) - 1.0;
-				double ly = 2.0 * fmod(double(gridSize) * ny, 1.0) - 1.0;
-				double lz = 2.0 * fmod(double(gridSize) * nz, 1.0) - 1.0;
+				const double lx = 2.0 * fmod(double(gridSize) * nx, 1.0) - 1.0;
+				const double ly = 2.0 * fmod(double(gridSize) * ny, 1.0) - 1.0;
+				const double lz = 2.0 * fmod(double(gridSize) * nz, 1.0) - 1.0;
 
-				double distance = sqrt(lx * lx + ly * ly + lz * lz);
+				const double distance = sqrt(lx * lx + ly * ly + lz * lz);
 
 				int64_t x = double(gridSize) * nx;
 				int64_t y = double(gridSize) * ny;
@@ -81,12 +81,12 @@ struct SamplerRandom : public Sampler {
 				y = std::max(int64_t(0), std::min(y, gridSize - 1));
 				z = std::max(int64_t(0), std::min(z, gridSize - 1));
 
-				int64_t index = x + y * gridSize + z * gridSize * gridSize;
+				const int64_t index = x + y * gridSize + z * gridSize * gridSize;
 
 				return { index, distance };
 			};
 
-			bool isLeaf = node->isLeaf();
+			const bool isLeaf = node->isLeaf();
 			if (isLeaf) {
 				// shuffle?
 
@@ -99,7 +99,7 @@ struct SamplerRandom : public Sampler {
 					indices[i] = i;
 				}
 
-				unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+				const unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 
 				shuffle(indices.begin(), indices.end(), std::default_random_engine(seed));
 
@@ -107,8 +107,8 @@ struct SamplerRandom : public Sampler {
 
 				for (int i = 0; i < node->numPoints; i++) {
 
-					int64_t sourceOffset = i * attributes.bytes;
-					int64_t targetOffset = indices[i] * attributes.bytes;
+					const int64_t sourceOffset = i * attributes.bytes;
+					const int64_t targetOffset = indices[i] * attributes.bytes;
 
 					memcpy(buffer->data_u8 + targetOffset, node->points->data_u8 + sourceOffset, attributes.bytes);
 
@@ -145,14 +145,14 @@ struct SamplerRandom : public Sampler {
 
 				for (int i = 0; i < child->numPoints; i++) {
 
-					int64_t pointOffset = i * attributes.bytes;
-					int32_t* xyz = reinterpret_cast<int32_t*>(child->points->data_u8 + pointOffset);
+					const int64_t pointOffset = i * attributes.bytes;
+					const int32_t* xyz = reinterpret_cast<int32_t*>(child->points->data_u8 + pointOffset);
 
-					double x = (xyz[0] * scale.x) + offset.x;
-					double y = (xyz[1] * scale.y) + offset.y;
-					double z = (xyz[2] * scale.z) + offset.z;
+					const double x = (xyz[0] * scale.x) + offset.x;
+					const double y = (xyz[1] * scale.y) + offset.y;
+					const double z = (xyz[2] * scale.z) + offset.z;
 
-					CellIndex cellIndex = toCellIndex({ x, y, z });
+					const CellIndex cellIndex = toCellIndex({ x, y, z });
 
 					auto& gridValue = grid[cellIndex.index];
 
@@ -192,7 +192,7 @@ struct SamplerRandom : public Sampler {
 				auto rejected = make_shared<Buffer>(numRejected * attributes.bytes);
 
 				for (int i = 0; i < child->numPoints; i++) {
-					auto isAccepted = acceptedFlags[i];
+					const auto isAccepted = acceptedFlags[i];
 					int64_t pointOffset = i * attributes.bytes;
 
 					if (isAccepted) {

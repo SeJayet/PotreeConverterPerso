@@ -41,12 +41,12 @@ void addOutputFile(string path) {
 
 void info(string msg, string file, int line) {
 
-	string filename = fs::path(file).filename().string();
+	const string filename = fs::path(file).filename().string();
 
 	stringstream ss;
 	ss << "INFO(" << filename << ":" << line << "): " << msg;
 
-	string str = ss.str();
+	const string str = ss.str();
 
 	//cout << str << endl;
 
@@ -60,12 +60,12 @@ void info(string msg, string file, int line) {
 
 void warn(string msg, string file, int line) {
 
-	string filename = fs::path(file).filename().string();
+	const string filename = fs::path(file).filename().string();
 
 	stringstream ss;
 	ss << "WARN(" << filename << ":" << line << "): " << msg;
 
-	string str = ss.str();
+	const string str = ss.str();
 
 	cout << str << endl;
 
@@ -79,12 +79,12 @@ void warn(string msg, string file, int line) {
 
 void error(string msg, string file, int line) {
 
-	string filename = fs::path(file).filename().string();
+	const string filename = fs::path(file).filename().string();
 
 	stringstream ss;
 	ss << "ERROR(" << filename << ":" << line << "): " << msg;
 
-	string str = ss.str();
+	const string str = ss.str();
 
 	cout << str << endl;
 

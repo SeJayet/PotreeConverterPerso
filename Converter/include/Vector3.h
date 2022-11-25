@@ -33,22 +33,22 @@ struct Vector3{
 	}
 
 	double squaredDistanceTo(const Vector3& right) {
-		double dx = right.x - x;
-		double dy = right.y - y;
-		double dz = right.z - z;
+		const double dx = right.x - x;
+		const double dy = right.y - y;
+		const double dz = right.z - z;
 
-		double dd = dx * dx + dy * dy + dz * dz;
+		const double dd = dx * dx + dy * dy + dz * dz;
 
 		return dd;
 	}
 
 	double distanceTo(const Vector3& right) {
-		double dx = right.x - x;
-		double dy = right.y - y;
-		double dz = right.z - z;
+		const double dx = right.x - x;
+		const double dy = right.y - y;
+		const double dz = right.z - z;
 
-		double dd = dx * dx + dy * dy + dz * dz;
-		double d = std::sqrt(dd);
+		const double dd = dx * dx + dy * dy + dz * dz;
+		const double d = std::sqrt(dd);
 
 		return d;
 	}
@@ -58,7 +58,7 @@ struct Vector3{
 	}
 
 	double max() {
-		double value = std::max(std::max(x, y), z);
+		const double value = std::max(std::max(x, y), z);
 		return value;
 	}
 
@@ -87,15 +87,13 @@ struct Vector3{
 	}
 
 	string toString() {
-
-		auto digits = std::numeric_limits<double>::max_digits10;
+		constexpr auto digits = std::numeric_limits<double>::max_digits10;
 
 		std::stringstream ss;
 		ss << std::setprecision(digits);
 		ss << x << ", " << y << ", " << z;
 
 		return ss.str();
-
 	}
 
 };

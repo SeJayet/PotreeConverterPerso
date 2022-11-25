@@ -75,7 +75,7 @@ private:
 
 		vector<string> tokens;
 
-		auto isDelimiter = [&delimiters](char ch) {
+		const auto isDelimiter = [&delimiters](char ch) {
 			for (auto &delimiter : delimiters) {
 				if (ch == delimiter) {
 					return true;

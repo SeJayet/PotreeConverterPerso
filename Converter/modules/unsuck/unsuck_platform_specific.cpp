@@ -16,10 +16,10 @@ MemoryData getMemoryData() {
 		MEMORYSTATUSEX memInfo;
 		memInfo.dwLength = sizeof(MEMORYSTATUSEX);
 		GlobalMemoryStatusEx(&memInfo);
-		DWORDLONG totalVirtualMem = memInfo.ullTotalPageFile;
-		DWORDLONG virtualMemUsed = memInfo.ullTotalPageFile - memInfo.ullAvailPageFile;;
-		DWORDLONG totalPhysMem = memInfo.ullTotalPhys;
-		DWORDLONG physMemUsed = memInfo.ullTotalPhys - memInfo.ullAvailPhys;
+		const DWORDLONG totalVirtualMem = memInfo.ullTotalPageFile;
+		const DWORDLONG virtualMemUsed = memInfo.ullTotalPageFile - memInfo.ullAvailPageFile;;
+		const DWORDLONG totalPhysMem = memInfo.ullTotalPhys;
+		const DWORDLONG physMemUsed = memInfo.ullTotalPhys - memInfo.ullAvailPhys;
 
 		data.virtual_total = totalVirtualMem;
 		data.virtual_used = virtualMemUsed;
@@ -32,8 +32,8 @@ MemoryData getMemoryData() {
 	{
 		PROCESS_MEMORY_COUNTERS_EX pmc;
 		GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
-		SIZE_T virtualMemUsedByMe = pmc.PrivateUsage;
-		SIZE_T physMemUsedByMe = pmc.WorkingSetSize;
+		const SIZE_T virtualMemUsedByMe = pmc.PrivateUsage;
+		const SIZE_T physMemUsedByMe = pmc.WorkingSetSize;
 
 		static size_t virtualUsedMax = 0;
 		static size_t physicalUsedMax = 0;
@@ -54,9 +54,9 @@ MemoryData getMemoryData() {
 
 void printMemoryReport() {
 
-	auto memoryData = getMemoryData();
-	double vm = double(memoryData.virtual_usedByProcess) / (1024.0 * 1024.0 * 1024.0);
-	double pm = double(memoryData.physical_usedByProcess) / (1024.0 * 1024.0 * 1024.0);
+	const auto memoryData = getMemoryData();
+	const double vm = double(memoryData.virtual_usedByProcess) / (1024.0 * 1024.0 * 1024.0);
+	const double pm = double(memoryData.physical_usedByProcess) / (1024.0 * 1024.0 * 1024.0);
 
 	stringstream ss;
 	ss << "memory usage: "
@@ -70,7 +70,7 @@ void printMemoryReport() {
 
 void launchMemoryChecker(int64_t maxMB, double checkInterval) {
 
-	auto interval = std::chrono::milliseconds(int64_t(checkInterval * 1000));
+	const auto interval = std::chrono::milliseconds(int64_t(checkInterval * 1000));
 
 	thread t([maxMB, interval]() {
 

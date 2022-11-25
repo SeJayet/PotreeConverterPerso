@@ -115,13 +115,13 @@ struct Buffer {
 		data = malloc(size);
 
 		if (data == nullptr) {
-			auto memory = getMemoryData();
+			const auto memory = getMemoryData();
 
 			cout << "ERROR: malloc(" << formatNumber(size) << ") failed." << endl;
 
-			auto virtualAvailable = memory.virtual_total - memory.virtual_used;
-			auto physicalAvailable = memory.physical_total - memory.physical_used;
-			auto GB = 1024.0 * 1024.0 * 1024.0;
+			const auto virtualAvailable = memory.virtual_total - memory.virtual_used;
+			const auto physicalAvailable = memory.physical_total - memory.physical_used;
+			constexpr auto GB = 1024.0 * 1024.0 * 1024.0;
 
 			cout << "virtual memory(total): " << formatNumber(double(memory.virtual_total) / GB) << endl;
 			cout << "virtual memory(used): " << formatNumber(double(memory.virtual_used) / GB, 1) << endl;
@@ -188,10 +188,10 @@ struct Buffer {
 
 
 inline double now() {
-	auto now = std::chrono::high_resolution_clock::now();
-	long long nanosSinceStart = now.time_since_epoch().count() - unsuck_start_time;
+	const auto now = std::chrono::high_resolution_clock::now();
+	const long long nanosSinceStart = now.time_since_epoch().count() - unsuck_start_time;
 
-	double secondsSinceStart = double(nanosSinceStart) / 1'000'000'000.0;
+	const double secondsSinceStart = double(nanosSinceStart) / 1'000'000'000.0;
 
 	return secondsSinceStart;
 }
@@ -199,7 +199,7 @@ inline double now() {
 
 inline void printElapsedTime(string label, double startTime) {
 
-	double elapsed = now() - startTime;
+	const double elapsed = now() - startTime;
 
 	string msg = label + ": " + to_string(elapsed) + "s\n";
 	cout << msg;
@@ -212,9 +212,9 @@ inline float random(float min, float max) {
 	thread_local std::random_device r;
 	thread_local std::default_random_engine e(r());
 
-	std::uniform_real_distribution<float> dist(min, max);
+	const std::uniform_real_distribution<float> dist(min, max);
 
-	auto value = dist(e);
+	const auto value = dist(e);
 
 	return value;
 }
@@ -223,7 +223,7 @@ inline std::vector<float> random(float min, float max, int n) {
 
 	thread_local std::random_device r;
 	thread_local std::default_random_engine e(r());
-	std::uniform_real_distribution<float> dist(min, max);
+	const std::uniform_real_distribution<float> dist(min, max);
 
 	std::vector<float> values(n);
 
@@ -241,7 +241,7 @@ inline double random(double min, double max) {
 	thread_local std::random_device r;
 	thread_local std::default_random_engine e(r());
 
-	std::uniform_real_distribution<double> dist(min, max);
+	const std::uniform_real_distribution<double> dist(min, max);
 
 	auto value = dist(e);
 
@@ -252,7 +252,7 @@ inline std::vector<double> random(double min, double max, int n) {
 
 	thread_local std::random_device r;
 	thread_local std::default_random_engine e(r());
-	std::uniform_real_distribution<double> dist(min, max);
+	const std::uniform_real_distribution<double> dist(min, max);
 
 	std::vector<double> values(n);
 
@@ -268,7 +268,7 @@ inline std::vector<int64_t> random(int64_t min, int64_t max, int64_t n) {
 
 	thread_local std::random_device r;
 	thread_local std::default_random_engine e(r());
-	std::uniform_int_distribution<int64_t> dist(min, max);
+	const std::uniform_int_distribution<int64_t> dist(min, max);
 
 	std::vector<int64_t> values(n);
 
@@ -284,7 +284,7 @@ inline std::vector<int64_t> random(int64_t min, int64_t max, int64_t n) {
 
 inline string stringReplace(string str, string search, string replacement) {
 
-	auto index = str.find(search);
+	const auto index = str.find(search);
 
 	if (index == str.npos) {
 		return str;
@@ -426,8 +426,9 @@ inline vector<uint8_t> readBinaryFile(string path, uint64_t start, uint64_t size
 
 	if (start >= totalSize) {
 		return vector<uint8_t>();
-	}if (start + size > totalSize) {
-		auto clampedSize = totalSize - start;
+	}
+	if (start + size > totalSize) {
+		const auto clampedSize = totalSize - start;
 
 		vector<uint8_t> buffer(clampedSize);
 		//file.seekg(start, ios::beg);
@@ -456,8 +457,9 @@ inline void readBinaryFile(string path, uint64_t start, uint64_t size, void* tar
 
 	if (start >= totalSize) {
 		return;
-	}if (start + size > totalSize) {
-		auto clampedSize = totalSize - start;
+	}
+	if (start + size > totalSize) {
+		const auto clampedSize = totalSize - start;
 
 		fseek_64_all_platforms(file, start, SEEK_SET);
 		fread(target, 1, clampedSize, file);
@@ -481,7 +483,7 @@ inline void writeBinaryFile(string path, vector<T>& data) {
 
 	while (remaining > 0) {
 		constexpr int64_t mb4 = int64_t(4 * 1024 * 1024);
-		int batchSize = std::min(remaining, mb4);
+		const int batchSize = std::min(remaining, mb4);
 		of.write(reinterpret_cast<char*>(data.data()) + offset, batchSize);
 
 		offset += batchSize;
@@ -501,7 +503,7 @@ inline void writeBinaryFile(string path, Buffer& data) {
 
 	while (remaining > 0) {
 		constexpr int64_t mb4 = int64_t(4 * 1024 * 1024);
-		int batchSize = std::min(remaining, mb4);
+		const int batchSize = std::min(remaining, mb4);
 		of.write(reinterpret_cast<char*>(data.data) + offset, batchSize);
 
 		offset += batchSize;
@@ -543,7 +545,7 @@ inline void writeFile(string path, string text) {
 inline void logDebug(string message) {
 #if defined(_DEBUG)
 
-	auto id = std::this_thread::get_id();
+	const auto id = std::this_thread::get_id();
 
 	stringstream ss;
 	ss << "[" << id << "]: " << message << "\n";
@@ -568,17 +570,17 @@ T read(vector<uint8_t>& buffer, int offset) {
 
 inline string leftPad(string in, int length, const char character = ' ') {
 
-	int tmp = length - in.size();
-	auto reps = std::max(tmp, 0);
-	string result = string(reps, character) + in;
+	const int tmp = length - in.size();
+	const auto reps = std::max(tmp, 0);
+	const string result = string(reps, character) + in;
 
 	return result;
 }
 
 inline string rightPad(string in, int64_t length, const char character = ' ') {
 
-	auto reps = std::max(length - int64_t(in.size()), int64_t(0));
-	string result = in + string(reps, character);
+	const auto reps = std::max(length - int64_t(in.size()), int64_t(0));
+	const string result = in + string(reps, character);
 
 	return result;
 }

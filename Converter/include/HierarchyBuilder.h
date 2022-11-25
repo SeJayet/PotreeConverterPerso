@@ -91,7 +91,7 @@ struct HierarchyBuilder{
 		// group this batch in chunks of <hierarchyStepSize>
 		for(int i = 0; i < batch->numNodes; i++){
 
-			int recordOffset = 48 * i;
+			const int recordOffset = 48 * i;
 
 			string nodeName = string(buffer->data_char + recordOffset, 31);
 			nodeName = stringReplace(nodeName, " ", "");
@@ -104,7 +104,7 @@ struct HierarchyBuilder{
 			node->byteSize   = buffer->get< int32_t>(recordOffset + 43);
 
 			// r: 0, r0123: 1, r01230123: 2
-			int chunkLevel = (node->name.size() - 2) / 4;
+			const int chunkLevel = (node->name.size() - 2) / 4;
 			string key = node->name.substr(0, hierarchyStepSize * chunkLevel + 1);
 			if(node->name == batch->name){
 				key = node->name;
@@ -121,8 +121,8 @@ struct HierarchyBuilder{
 			batch->nodes.push_back(node);
 			batch->nodeMap[node->name] = batch->nodes[batch->nodes.size() - 1];
 
-			bool isChunkKey = ((node->name.size() - 1) % hierarchyStepSize) == 0;
-			bool isBatchSubChunk = node->name.size() > hierarchyStepSize + 1;
+			const bool isChunkKey = ((node->name.size() - 1) % hierarchyStepSize) == 0;
+			const bool isBatchSubChunk = node->name.size() > hierarchyStepSize + 1;
 			if(isChunkKey && isBatchSubChunk){
 				if(batch->chunkMap.find(node->name) == batch->chunkMap.end()){
 					auto chunk = make_shared<HChunk>();
@@ -155,7 +155,7 @@ struct HierarchyBuilder{
 			auto ptrParent = batch->nodeMap.find(parentName);
 
 			if(ptrParent != batch->nodeMap.end()){
-				int childIndex = node->name.back() - '0';
+				const int childIndex = node->name.back() - '0';
 				ptrParent->second->type = TYPE::NORMAL;
 				ptrParent->second->childMask = ptrParent->second->childMask | (1 << childIndex);
 			}
@@ -256,15 +256,15 @@ struct HierarchyBuilder{
 
 				// proxy nodes exist twice - in the chunk and the parent-chunk that points to this chunk
 				// only the node in the parent-chunk is a proxy (to its non-proxy counterpart)
-				bool isProxyNode = (node->type == TYPE::PROXY) && node->name != chunk->name;
+				const bool isProxyNode = (node->type == TYPE::PROXY) && node->name != chunk->name;
 				
 				TYPE type = node->type;
 				if(node->type == TYPE::PROXY && !isProxyNode){
 					type = TYPE::NORMAL;
 				}
 
-				uint64_t byteSize = isProxyNode ? node->proxyByteSize : node->byteSize;
-				uint64_t byteOffset = (isProxyNode ? bytesWritten + node->proxyByteOffset : node->byteOffset);
+				const uint64_t byteSize = isProxyNode ? node->proxyByteSize : node->byteSize;
+				const uint64_t byteOffset = (isProxyNode ? bytesWritten + node->proxyByteOffset : node->byteOffset);
 
 				buffer->set<uint8_t >(type            , 22 * recordsProcessed +  0);
 				buffer->set<uint8_t >(node->childMask , 22 * recordsProcessed +  1);
@@ -337,7 +337,7 @@ struct HierarchyBuilder{
 			fstream f(hierarchyFilePath, ios::ate | ios::binary | ios::out | ios::in);
 			f.seekg(0);
 
-			auto buffer = serializeBatch(batch_root, 0);
+			const auto buffer = serializeBatch(batch_root, 0);
 
 			f.write(buffer->data_char, buffer->size);
 			f.close();

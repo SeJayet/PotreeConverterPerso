@@ -35,22 +35,22 @@ struct SamplerPoisson : public Sampler {
 			callback(node);
 		};
 
-		int64_t bytesPerPoint = attributes.bytes;
-		Vector3 scale = attributes.posScale;
-		Vector3 offset = attributes.posOffset;
+		const int64_t bytesPerPoint = attributes.bytes;
+		const Vector3 scale = attributes.posScale;
+		const Vector3 offset = attributes.posOffset;
 
 		traversePost(node, [bytesPerPoint, baseSpacing, scale, offset, &onNodeCompleted, &onNodeDiscarded, attributes](Node* node) {
 			node->sampled = true;
 
-			int64_t numPoints = node->numPoints;
+			const int64_t numPoints = node->numPoints;
 
-			auto max = node->max;
-			auto min = node->min;
-			auto size = max - min;
-			auto scale = attributes.posScale;
-			auto offset = attributes.posOffset;
+			const auto max = node->max;
+			const auto min = node->min;
+			const auto size = max - min;
+			const auto scale = attributes.posScale;
+			const auto offset = attributes.posOffset;
 
-			bool isLeaf = node->isLeaf();
+			const bool isLeaf = node->isLeaf();
 
 			if (isLeaf) {
 				return false;
@@ -93,12 +93,12 @@ struct SamplerPoisson : public Sampler {
 				acceptedChildPointFlags.push_back(acceptedFlags);
 
 				for (int64_t i = 0; i < child->numPoints; i++) {
-					int64_t pointOffset = i * attributes.bytes;
-					int32_t* xyz = reinterpret_cast<int32_t*>(child->points->data_u8 + pointOffset);
+					const int64_t pointOffset = i * attributes.bytes;
+					const int32_t* xyz = reinterpret_cast<int32_t*>(child->points->data_u8 + pointOffset);
 
-					double x = (xyz[0] * scale.x) + offset.x;
-					double y = (xyz[1] * scale.y) + offset.y;
-					double z = (xyz[2] * scale.z) + offset.z;
+					const double x = (xyz[0] * scale.x) + offset.x;
+					const double y = (xyz[1] * scale.y) + offset.y;
+					const double z = (xyz[2] * scale.z) + offset.z;
 
 					Point point = { x, y, z, i & 0xFFFF'FFFF, childIndex };
 
@@ -107,38 +107,38 @@ struct SamplerPoisson : public Sampler {
 
 			}
 
-			unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+			const unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 
 			thread_local vector<Point> dbgAccepted(1'000'000);
 			int64_t dbgNumAccepted = 0;
-			double spacing = baseSpacing / pow(2.0, node->level());
-			double squaredSpacing = spacing * spacing;
+			const double spacing = baseSpacing / pow(2.0, node->level());
+			const double squaredSpacing = spacing * spacing;
 
-			auto squaredDistance = [](Point& a, Point& b) {
-				double dx = a.x - b.x;
-				double dy = a.y - b.y;
-				double dz = a.z - b.z;
+			const auto squaredDistance = [](Point& a, Point& b) {
+				const double dx = a.x - b.x;
+				const double dy = a.y - b.y;
+				const double dz = a.z - b.z;
 
-				double dd = dx * dx + dy * dy + dz * dz;
+				const double dd = dx * dx + dy * dy + dz * dz;
 
 				return dd;
 			};
 
-			auto center = (node->min + node->max) * 0.5;
+			const auto center = (node->min + node->max) * 0.5;
 
 			//int dbgChecks = -1;
 			//int dbgSumChecks = 0;
 			//int dbgMaxChecks = 0;
 
-			auto checkAccept = [/*&dbgChecks, &dbgSumChecks,*/ &dbgNumAccepted, spacing, squaredSpacing, &squaredDistance, center /*, &numDistanceChecks*/](Point candidate) {
+			const auto checkAccept = [/*&dbgChecks, &dbgSumChecks,*/ &dbgNumAccepted, spacing, squaredSpacing, &squaredDistance, center /*, &numDistanceChecks*/](Point candidate) {
 
-				auto cx = candidate.x - center.x;
-				auto cy = candidate.y - center.y;
-				auto cz = candidate.z - center.z;
-				auto cdd = cx * cx + cy * cy + cz * cz;
-				auto cd = sqrt(cdd);
-				auto limit = (cd - spacing);
-				auto limitSquared = limit * limit;
+				const auto cx = candidate.x - center.x;
+				const auto cy = candidate.y - center.y;
+				const auto cz = candidate.z - center.z;
+				const auto cdd = cx * cx + cy * cy + cz * cz;
+				const auto cd = sqrt(cdd);
+				const auto limit = (cd - spacing);
+				const auto limitSquared = limit * limit;
 
 				int64_t j = 0;
 				for (int64_t i = dbgNumAccepted - 1; i >= 0; i--) {
@@ -149,10 +149,10 @@ struct SamplerPoisson : public Sampler {
 					//dbgSumChecks++;
 
 					// check distance to center
-					auto px = point.x - center.x;
-					auto py = point.y - center.y;
-					auto pz = point.z - center.z;
-					auto pdd = px * px + py * py + pz * pz;
+					const auto px = point.x - center.x;
+					const auto py = point.y - center.y;
+					const auto pz = point.z - center.z;
+					const auto pdd = px * px + py * py + pz * pz;
 					//auto pd = sqrt(pdd);
 
 					// stop when differences to center between candidate and accepted exceeds the spacing
@@ -161,7 +161,7 @@ struct SamplerPoisson : public Sampler {
 						return true;
 					}
 
-					double dd = squaredDistance(point, candidate);
+					const double dd = squaredDistance(point, candidate);
 
 					if (dd < squaredSpacing) {
 						return false;
@@ -179,18 +179,18 @@ struct SamplerPoisson : public Sampler {
 
 			};
 
-			auto parallel = std::execution::par_unseq;
+			constexpr auto parallel = std::execution::par_unseq;
 			std::sort(parallel, points.begin(), points.end(), [center](Point a, Point b) -> bool {
 
-				auto ax = a.x - center.x;
-				auto ay = a.y - center.y;
-				auto az = a.z - center.z;
-				auto add = ax * ax + ay * ay + az * az;
+				const auto ax = a.x - center.x;
+				const auto ay = a.y - center.y;
+				const auto az = a.z - center.z;
+				const auto add = ax * ax + ay * ay + az * az;
 
-				auto bx = b.x - center.x;
-				auto by = b.y - center.y;
-				auto bz = b.z - center.z;
-				auto bdd = bx * bx + by * by + bz * bz;
+				const auto bx = b.x - center.x;
+				const auto by = b.y - center.y;
+				const auto bz = b.z - center.z;
+				const auto bdd = bx * bx + by * by + bz * bz;
 
 				// sort by distance to center
 				return add < bdd;
@@ -206,7 +206,7 @@ struct SamplerPoisson : public Sampler {
 
 				//dbgChecks = 0;
 
-				bool isAccepted = checkAccept(point);
+				const bool isAccepted = checkAccept(point);
 
 				//dbgMaxChecks = std::max(dbgChecks, dbgMaxChecks);
 

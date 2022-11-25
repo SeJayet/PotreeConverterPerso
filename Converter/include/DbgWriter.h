@@ -21,7 +21,7 @@ namespace dbgwriter{
 		vector<Point> points;
 
 		for (int64_t i = 0; i < node->numPoints; i++) {
-			int64_t offset = i * attributes.bytes;
+			const int64_t offset = i * attributes.bytes;
 
 			int32_t sX, sY, sZ;
 			memcpy(&sX, node->points->data_u8 + offset + 0, 4);
@@ -51,7 +51,7 @@ namespace dbgwriter{
 		max.y = std::numeric_limits<int64_t>::min();
 		max.z = std::numeric_limits<int64_t>::min();
 
-		for (Point& point : points) {
+		for (const Point& point : points) {
 			min.x = std::min(min.x, point.x);
 			min.y = std::min(min.y, point.y);
 			min.z = std::min(min.z, point.z);
@@ -137,7 +137,7 @@ namespace dbgwriter{
 
 	void writePosition2(string dir, Node* node, Attributes attributes) {
 		
-		int64_t numPoints = node->numPoints;
+		const int64_t numPoints = node->numPoints;
 
 		int64_t minX = std::numeric_limits<int64_t>::max();
 		int64_t minY = std::numeric_limits<int64_t>::max();
@@ -147,7 +147,7 @@ namespace dbgwriter{
 		int64_t maxZ = std::numeric_limits<int64_t>::min();
 
 		for (int64_t i = 1; i < numPoints; i++) {
-			int64_t offset = i * attributes.bytes;
+			const int64_t offset = i * attributes.bytes;
 
 			int32_t sX, sY, sZ;
 			memcpy(&sX, node->points->data_u8 + offset + 0, 4);
@@ -164,15 +164,15 @@ namespace dbgwriter{
 
 		}
 
-		int64_t rangeX = maxX - minX;
-		int64_t rangeY = maxY - minY;
-		int64_t rangeZ = maxZ - minZ;
+		const int64_t rangeX = maxX - minX;
+		const int64_t rangeY = maxY - minY;
+		const int64_t rangeZ = maxZ - minZ;
 
-		int bitsX = std::log2(rangeX);
-		int bitsY = std::log2(rangeY);
-		int bitsZ = std::log2(rangeZ);
+		const int bitsX = std::log2(rangeX);
+		const int bitsY = std::log2(rangeY);
+		const int bitsZ = std::log2(rangeZ);
 
-		auto computeBytes = [](int bits) {
+		const auto computeBytes = [](int bits) {
 			if (bits <= 8) {
 				return 1;
 			} else if (bits <= 16) {
@@ -183,25 +183,25 @@ namespace dbgwriter{
 			return -1;
 		};
 
-		int bytesX = computeBytes(bitsX);
-		int bytesY = computeBytes(bitsY);
-		int bytesZ = computeBytes(bitsZ);
+		const int bytesX = computeBytes(bitsX);
+		const int bytesY = computeBytes(bitsY);
+		const int bytesZ = computeBytes(bitsZ);
 
 		Buffer X(numPoints * bytesX);
 		Buffer Y(numPoints * bytesY);
 		Buffer Z(numPoints * bytesZ);
 
 		for (int64_t i = 1; i < numPoints; i++) {
-			int64_t offset = i * attributes.bytes;
+			const int64_t offset = i * attributes.bytes;
 
 			int32_t sX, sY, sZ;
 			memcpy(&sX, node->points->data_u8 + offset + 0, 4);
 			memcpy(&sY, node->points->data_u8 + offset + 4, 4);
 			memcpy(&sZ, node->points->data_u8 + offset + 8, 4);
 
-			int32_t oX = sX - minX;
-			int32_t oY = sY - minY;
-			int32_t oZ = sZ - minZ;
+			const int32_t oX = sX - minX;
+			const int32_t oY = sY - minY;
+			const int32_t oZ = sZ - minZ;
 
 			if (bytesX == 1) {
 				X.data_u8[i] = oX;
@@ -236,7 +236,7 @@ namespace dbgwriter{
 
 	void writePosition(string dir, Node* node, Attributes attributes) {
 
-		int64_t numPoints = node->numPoints;
+		const int64_t numPoints = node->numPoints;
 		vector<Point> points = getPoints(node, attributes);
 
 		Buffer X(numPoints * 4);
@@ -253,9 +253,9 @@ namespace dbgwriter{
 		stringstream ssPoints;
 
 		for (int64_t i = 0; i < numPoints; i++) {
-			int64_t offset = i * attributes.bytes;
+			const int64_t offset = i * attributes.bytes;
 
-			Point point = points[i];
+			const Point point = points[i];
 
 			X.data_i32[i] = point.x;
 			Y.data_i32[i] = point.y;
@@ -323,29 +323,29 @@ namespace dbgwriter{
 
 	void writePositionMortonCode(string dir, Node* node, Attributes attributes) {
 
-		int64_t numPoints = node->numPoints;
+		const int64_t numPoints = node->numPoints;
 
 		vector<Point> points = getPoints(node, attributes);
 
-		auto [min, max] = computeBox(points);
+		const auto [min, max] = computeBox(points);
 
-		int64_t rangeX = max.x - min.x;
-		int64_t rangeY = max.z - min.z;
-		int64_t rangeZ = max.y - min.y;
+		const int64_t rangeX = max.x - min.x;
+		const int64_t rangeY = max.z - min.z;
+		const int64_t rangeZ = max.y - min.y;
 
 
 		vector<uint64_t> mortonCodes;
 
 		for (int64_t i = 0; i < numPoints; i++) {
-			int64_t offset = i * attributes.bytes;
+			const int64_t offset = i * attributes.bytes;
 
-			Point point = points[i];
+			const Point point = points[i];
 
-			uint32_t oX = point.x - min.x;
-			uint32_t oY = point.z - min.z;
-			uint32_t oZ = point.y - min.y;
+			const uint32_t oX = point.x - min.x;
+			const uint32_t oY = point.z - min.z;
+			const uint32_t oZ = point.y - min.y;
 
-			uint64_t mortonCode = mortonEncode_magicbits(oX, oY, oZ);
+			const uint64_t mortonCode = mortonEncode_magicbits(oX, oY, oZ);
 
 			mortonCodes.push_back(mortonCode);
 
@@ -364,7 +364,7 @@ namespace dbgwriter{
 		ssDiff << "[";
 
 		for (int64_t i = 0; i < numPoints; i++) {
-			uint64_t mortonCode = mortonCodes[i];
+			const uint64_t mortonCode = mortonCodes[i];
 			data.data_u64[i] = mortonCode;
 
 			uint64_t diff;
@@ -397,8 +397,8 @@ namespace dbgwriter{
 
 	void writeIntensity(string dir, Node* node, Attributes attributes) {
 
-		int64_t numPoints = node->numPoints;
-		int64_t attributeOffset = attributes.getOffset("intensity");
+		const int64_t numPoints = node->numPoints;
+		const int64_t attributeOffset = attributes.getOffset("intensity");
 
 		//int16_t intensity_origin_u16;
 		//memcpy(&intensity_origin_u16, node->points->data_u8 + attributeOffset, 2);
@@ -412,17 +412,17 @@ namespace dbgwriter{
 		int64_t intensity_current;
 
 		for (int64_t i = 1; i < numPoints; i++) {
-			int64_t offset = i * attributes.bytes;
+			const int64_t offset = i * attributes.bytes;
 
 			int16_t intensity_1_u16;
 			memcpy(&intensity_1_u16, node->points->data_u8 + offset + attributeOffset, 2);
 
 			intensity_current = intensity_1_u16;
 
-			int64_t diff = (intensity_current - intensity_previous);
-			int64_t sign = diff < 0 ? 0b1000'0000'0000'0000 : 0b0;
+			const int64_t diff = (intensity_current - intensity_previous);
+			const int64_t sign = diff < 0 ? 0b1000'0000'0000'0000 : 0b0;
 
-			uint16_t diff16 = sign | std::abs(diff);
+			const uint16_t diff16 = sign | std::abs(diff);
 			//uint16_t diff16 = ((std::abs(diff) << 1) | sign);
 
 			I.data_u16[i] = diff16;
@@ -435,17 +435,17 @@ namespace dbgwriter{
 
 
 	void writeNormal(string dir, Node* node, Attributes attributes, Attribute attribute) {
-		int attributeOffset = attributes.getOffset(attribute.name);
-		int64_t numBytes = attribute.size * node->numPoints;
+		const int attributeOffset = attributes.getOffset(attribute.name);
+		const int64_t numBytes = attribute.size * node->numPoints;
 		Buffer buffer(numBytes);
 
-		uint8_t* source = node->points->data_u8;
+		const uint8_t* source = node->points->data_u8;
 		uint8_t* target = buffer.data_u8;
 
 		for (int64_t i = 0; i < node->numPoints; i++) {
 
-			int64_t sourceOffset = i * attributes.bytes + attributeOffset;
-			int64_t targetOffset = i * attribute.size;
+			const int64_t sourceOffset = i * attributes.bytes + attributeOffset;
+			const int64_t targetOffset = i * attribute.size;
 
 			memcpy(target + targetOffset, source + sourceOffset, attribute.size);
 		}
@@ -456,16 +456,16 @@ namespace dbgwriter{
 	}
 
 	void writeRGB(string dir, Node* node, Attributes attributes, Attribute attribute) {
-		int attributeOffset = attributes.getOffset(attribute.name);
-		int64_t numPoints = node->numPoints;
+		const int attributeOffset = attributes.getOffset(attribute.name);
+		const int64_t numPoints = node->numPoints;
 		//int64_t numBytes = 4 * numPoints;
 		//Buffer buffer(numBytes);
 
-		uint8_t* source = node->points->data_u8;
+		const uint8_t* source = node->points->data_u8;
 		//uint8_t* target = buffer.data_u8;
 
-		int64_t dimx = ceil(sqrt(numPoints));
-		int64_t dimy = dimx;
+		const int64_t dimx = ceil(sqrt(numPoints));
+		const int64_t dimy = dimx;
 
 		string filepath = dir + "/" + attribute.name + ".ppm";
 		ofstream ofs(filepath, ios::out | ios::binary);
@@ -474,14 +474,14 @@ namespace dbgwriter{
 
 		for (int64_t i = 0; i < numPoints; i++) {
 
-			int64_t sourceOffset = i * attributes.bytes + attributeOffset;
+			const int64_t sourceOffset = i * attributes.bytes + attributeOffset;
 
 			uint16_t rgb[3];
 			memcpy(rgb, source + sourceOffset, 6);
 
-			uint8_t r = rgb[0] > 255 ? rgb[0] / 256 : rgb[0];
-			uint8_t g = rgb[1] > 255 ? rgb[1] / 256 : rgb[1];
-			uint8_t b = rgb[2] > 255 ? rgb[2] / 256 : rgb[2];
+			const uint8_t r = rgb[0] > 255 ? rgb[0] / 256 : rgb[0];
+			const uint8_t g = rgb[1] > 255 ? rgb[1] / 256 : rgb[1];
+			const uint8_t b = rgb[2] > 255 ? rgb[2] / 256 : rgb[2];
 
 			ofs << r << g << b;
 			
@@ -509,7 +509,7 @@ namespace dbgwriter{
 		fs::create_directories(dir);
 
 		int64_t attributeOffset = 0;
-		for (Attribute& attribute : attributes.list) {
+		for (const Attribute& attribute : attributes.list) {
 
 			if (attribute.name == "position") {
 				//writeNormal(dir, node, attributes, attribute);

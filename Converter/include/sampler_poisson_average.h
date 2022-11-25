@@ -43,22 +43,22 @@ struct SamplerPoissonAverage : public Sampler {
 			callback(node);
 		};
 
-		int bytesPerPoint = attributes.bytes;
-		Vector3 scale = attributes.posScale;
-		Vector3 offset = attributes.posOffset;
+		const int bytesPerPoint = attributes.bytes;
+		const Vector3 scale = attributes.posScale;
+		const Vector3 offset = attributes.posOffset;
 
 		traversePost(node, [bytesPerPoint, baseSpacing, scale, offset, &onNodeCompleted, &attributes](Node* node) {
 			node->sampled = true;
 
-			int64_t numPoints = node->numPoints;
+			const int64_t numPoints = node->numPoints;
 
-			auto max = node->max;
-			auto min = node->min;
-			auto size = max - min;
-			auto scale = attributes.posScale;
-			auto offset = attributes.posOffset;
+			const auto max = node->max;
+			const auto min = node->min;
+			const auto size = max - min;
+			const auto scale = attributes.posScale;
+			const auto offset = attributes.posOffset;
 
-			bool isLeaf = node->isLeaf();
+			const bool isLeaf = node->isLeaf();
 
 			if (isLeaf) {
 
@@ -98,9 +98,9 @@ struct SamplerPoissonAverage : public Sampler {
 					continue;
 				}
 
-				bool childIsLeaf = child->isLeaf();
+				const bool childIsLeaf = child->isLeaf();
 
-				int offsetRGB = attributes.getOffset("rgb");
+				const int offsetRGB = attributes.getOffset("rgb");
 				//if (child->isLeaf()) {
 
 				//	vector<CumulativeColor> colors;
@@ -126,12 +126,12 @@ struct SamplerPoissonAverage : public Sampler {
 				acceptedChildPointFlags.push_back(acceptedFlags);
 
 				for (int i = 0; i < child->numPoints; i++) {
-					int64_t pointOffset = i * attributes.bytes;
-					int32_t* xyz = reinterpret_cast<int32_t*>(child->points->data_u8 + pointOffset);
+					const int64_t pointOffset = i * attributes.bytes;
+					const int32_t* xyz = reinterpret_cast<int32_t*>(child->points->data_u8 + pointOffset);
 
-					double x = (xyz[0] * scale.x) + offset.x;
-					double y = (xyz[1] * scale.y) + offset.y;
-					double z = (xyz[2] * scale.z) + offset.z;
+					const double x = (xyz[0] * scale.x) + offset.x;
+					const double y = (xyz[1] * scale.y) + offset.y;
+					const double z = (xyz[2] * scale.z) + offset.z;
 
 					Point point = { x, y, z, i, childIndex };
 
@@ -140,7 +140,7 @@ struct SamplerPoissonAverage : public Sampler {
 					point.b = child->colors[i].b;
 					point.w = child->colors[i].w;*/
 
-					size_t offsetPoint = i * attributes.bytes;
+					const size_t offsetPoint = i * attributes.bytes;
 					point.r = reinterpret_cast<uint16_t*>(child->points->data_u8 + offsetPoint + offsetRGB)[0];
 					point.g = reinterpret_cast<uint16_t*>(child->points->data_u8 + offsetPoint + offsetRGB)[1];
 					point.b = reinterpret_cast<uint16_t*>(child->points->data_u8 + offsetPoint + offsetRGB)[2];
@@ -155,67 +155,67 @@ struct SamplerPoissonAverage : public Sampler {
 
 			}
 
-			unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+			const unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 
 			//thread_local vector<Point> dbgAccepted(1'000'000);
 			//int dbgNumAccepted = 0;
-			double spacing = baseSpacing / pow(2.0, node->level());
-			double squaredSpacing = spacing * spacing;
+			const double spacing = baseSpacing / pow(2.0, node->level());
+			const double squaredSpacing = spacing * spacing;
 
 			auto squaredDistance = [](Point& a, Point& b) {
-				double dx = a.x - b.x;
-				double dy = a.y - b.y;
-				double dz = a.z - b.z;
+				const double dx = a.x - b.x;
+				const double dy = a.y - b.y;
+				const double dz = a.z - b.z;
 
-				double dd = dx * dx + dy * dy + dz * dz;
+				const double dd = dx * dx + dy * dy + dz * dz;
 
 				return dd;
 			};
 
-			auto center = (node->min + node->max) * 0.5;
+			const auto center = (node->min + node->max) * 0.5;
 
 			//int dbgChecks = -1;
 			//int dbgSumChecks = 0;
 			//int dbgMaxChecks = 0;
 
-			double acceptGridSize = 16;
+			constexpr double acceptGridSize = 16;
 			vector<vector<Point>> gridAccepted(acceptGridSize * acceptGridSize * acceptGridSize);
 
-			auto checkAccept = [/*&dbgChecks, &dbgSumChecks, &dbgNumAccepted,*/ spacing, squaredSpacing, &squaredDistance, center, min, max, size, &gridAccepted, acceptGridSize](Point candidate) {
+			const auto checkAccept = [/*&dbgChecks, &dbgSumChecks, &dbgNumAccepted,*/ spacing, squaredSpacing, &squaredDistance, center, min, max, size, &gridAccepted, acceptGridSize](Point candidate) {
 
-				double dx = acceptGridSize * (candidate.x - min.x) / size.x;
-				double dy = acceptGridSize * (candidate.y - min.y) / size.y;
-				double dz = acceptGridSize * (candidate.z - min.z) / size.z;
+				const double dx = acceptGridSize * (candidate.x - min.x) / size.x;
+				const double dy = acceptGridSize * (candidate.y - min.y) / size.y;
+				const double dz = acceptGridSize * (candidate.z - min.z) / size.z;
 
-				double dx_min = acceptGridSize * (candidate.x - spacing - min.x) / size.x;
-				double dy_min = acceptGridSize * (candidate.y - spacing - min.y) / size.y;
-				double dz_min = acceptGridSize * (candidate.z - spacing - min.z) / size.z;
+				const double dx_min = acceptGridSize * (candidate.x - spacing - min.x) / size.x;
+				const double dy_min = acceptGridSize * (candidate.y - spacing - min.y) / size.y;
+				const double dz_min = acceptGridSize * (candidate.z - spacing - min.z) / size.z;
 
-				double dx_max = acceptGridSize * (candidate.x + spacing - min.x) / size.x;
-				double dy_max = acceptGridSize * (candidate.y + spacing - min.y) / size.y;
-				double dz_max = acceptGridSize * (candidate.z + spacing - min.z) / size.z;
+				const double dx_max = acceptGridSize * (candidate.x + spacing - min.x) / size.x;
+				const double dy_max = acceptGridSize * (candidate.y + spacing - min.y) / size.y;
+				const double dz_max = acceptGridSize * (candidate.z + spacing - min.z) / size.z;
 
-				int ix = std::max(std::min(dx, acceptGridSize - 1.0), 0.0);
-				int iy = std::max(std::min(dy, acceptGridSize - 1.0), 0.0);
-				int iz = std::max(std::min(dz, acceptGridSize - 1.0), 0.0);
+				const int ix = std::max(std::min(dx, acceptGridSize - 1.0), 0.0);
+				const int iy = std::max(std::min(dy, acceptGridSize - 1.0), 0.0);
+				const int iz = std::max(std::min(dz, acceptGridSize - 1.0), 0.0);
 
-				int x_min = std::max(std::min(dx_min, acceptGridSize - 1.0), 0.0);
-				int y_min = std::max(std::min(dy_min, acceptGridSize - 1.0), 0.0);
-				int z_min = std::max(std::min(dz_min, acceptGridSize - 1.0), 0.0);
+				const int x_min = std::max(std::min(dx_min, acceptGridSize - 1.0), 0.0);
+				const int y_min = std::max(std::min(dy_min, acceptGridSize - 1.0), 0.0);
+				const int z_min = std::max(std::min(dz_min, acceptGridSize - 1.0), 0.0);
 
-				int x_max = std::max(std::min(dx_max, acceptGridSize - 1.0), 0.0);
-				int y_max = std::max(std::min(dy_max, acceptGridSize - 1.0), 0.0);
-				int z_max = std::max(std::min(dz_max, acceptGridSize - 1.0), 0.0);
+				const int x_max = std::max(std::min(dx_max, acceptGridSize - 1.0), 0.0);
+				const int y_max = std::max(std::min(dy_max, acceptGridSize - 1.0), 0.0);
+				const int z_max = std::max(std::min(dz_max, acceptGridSize - 1.0), 0.0);
 
 				for (int x = x_min; x <= x_max; x++) {
 				for (int y = y_min; y <= y_max; y++) {
 				for (int z = z_min; z <= z_max; z++) {
-					int index = x + y * acceptGridSize + z * acceptGridSize * acceptGridSize;
+					const int index = x + y * acceptGridSize + z * acceptGridSize * acceptGridSize;
 
-					auto& list = gridAccepted[index];
+					const auto& list = gridAccepted[index];
 
 					for (auto point : list) {
-						double dd = squaredDistance(point, candidate);
+						const double dd = squaredDistance(point, candidate);
 
 						if (dd < squaredSpacing) {
 							return false;
@@ -226,7 +226,7 @@ struct SamplerPoissonAverage : public Sampler {
 				}
 				}
 
-				int indexCurr = ix + iy * acceptGridSize + iz * acceptGridSize * acceptGridSize;
+				const int indexCurr = ix + iy * acceptGridSize + iz * acceptGridSize * acceptGridSize;
 				gridAccepted[indexCurr].push_back(candidate);
 
 				//=====================================================
@@ -280,18 +280,18 @@ struct SamplerPoissonAverage : public Sampler {
 
 			};
 
-			auto parallel = std::execution::par_unseq;
+			constexpr auto parallel = std::execution::par_unseq;
 			std::sort(parallel, points.begin(), points.end(), [center](Point a, Point b) -> bool {
 
-				auto ax = a.x - center.x;
-				auto ay = a.y - center.y;
-				auto az = a.z - center.z;
-				auto add = ax * ax + ay * ay + az * az;
+				const auto ax = a.x - center.x;
+				const auto ay = a.y - center.y;
+				const auto az = a.z - center.z;
+				const auto add = ax * ax + ay * ay + az * az;
 
-				auto bx = b.x - center.x;
-				auto by = b.y - center.y;
-				auto bz = b.z - center.z;
-				auto bdd = bx * bx + by * by + bz * bz;
+				const auto bx = b.x - center.x;
+				const auto by = b.y - center.y;
+				const auto bz = b.z - center.z;
+				const auto bdd = bx * bx + by * by + bz * bz;
 
 				// sort by distance to center
 				return add < bdd;
@@ -309,14 +309,14 @@ struct SamplerPoissonAverage : public Sampler {
 
 
 			//int abc = 0;
-			for (Point& point : points) {
+			for (const Point& point : points) {
 
 				//dbgChecks = 0;
 
 				//point.mainIndex = abc;
 				//abc++;
 
-				bool isAccepted = checkAccept(point);
+				const bool isAccepted = checkAccept(point);
 
 				//dbgMaxChecks = std::max(dbgChecks, dbgMaxChecks);
 
@@ -355,9 +355,9 @@ struct SamplerPoissonAverage : public Sampler {
 			}
 
 			{// compute average color
-				int offsetRGB = attributes.getOffset("rgb");
+				const int offsetRGB = attributes.getOffset("rgb");
 
-				auto addCandidateToAverage = [node](Point& candidate, Point& average) {
+				const auto addCandidateToAverage = [node](Point& candidate, Point& average) {
 					average.r = average.r + candidate.r;
 					average.g = average.g + candidate.g;
 					average.b = average.b + candidate.b;
@@ -367,39 +367,39 @@ struct SamplerPoissonAverage : public Sampler {
 
 
 				for (Point& candidate : points) {
-					double dx = acceptGridSize * (candidate.x - min.x) / size.x;
-					double dy = acceptGridSize * (candidate.y - min.y) / size.y;
-					double dz = acceptGridSize * (candidate.z - min.z) / size.z;
+					const double dx = acceptGridSize * (candidate.x - min.x) / size.x;
+					const double dy = acceptGridSize * (candidate.y - min.y) / size.y;
+					const double dz = acceptGridSize * (candidate.z - min.z) / size.z;
 
-					double dx_min = acceptGridSize * (candidate.x - spacing - min.x) / size.x;
-					double dy_min = acceptGridSize * (candidate.y - spacing - min.y) / size.y;
-					double dz_min = acceptGridSize * (candidate.z - spacing - min.z) / size.z;
+					const double dx_min = acceptGridSize * (candidate.x - spacing - min.x) / size.x;
+					const double dy_min = acceptGridSize * (candidate.y - spacing - min.y) / size.y;
+					const double dz_min = acceptGridSize * (candidate.z - spacing - min.z) / size.z;
 
-					double dx_max = acceptGridSize * (candidate.x + spacing - min.x) / size.x;
-					double dy_max = acceptGridSize * (candidate.y + spacing - min.y) / size.y;
-					double dz_max = acceptGridSize * (candidate.z + spacing - min.z) / size.z;
+					const double dx_max = acceptGridSize * (candidate.x + spacing - min.x) / size.x;
+					const double dy_max = acceptGridSize * (candidate.y + spacing - min.y) / size.y;
+					const double dz_max = acceptGridSize * (candidate.z + spacing - min.z) / size.z;
 
-					int ix = std::max(std::min(dx, acceptGridSize - 1.0), 0.0);
-					int iy = std::max(std::min(dy, acceptGridSize - 1.0), 0.0);
-					int iz = std::max(std::min(dz, acceptGridSize - 1.0), 0.0);
+					const int ix = std::max(std::min(dx, acceptGridSize - 1.0), 0.0);
+					const int iy = std::max(std::min(dy, acceptGridSize - 1.0), 0.0);
+					const int iz = std::max(std::min(dz, acceptGridSize - 1.0), 0.0);
 
-					int x_min = std::max(std::min(dx_min, acceptGridSize - 1.0), 0.0);
-					int y_min = std::max(std::min(dy_min, acceptGridSize - 1.0), 0.0);
-					int z_min = std::max(std::min(dz_min, acceptGridSize - 1.0), 0.0);
+					const int x_min = std::max(std::min(dx_min, acceptGridSize - 1.0), 0.0);
+					const int y_min = std::max(std::min(dy_min, acceptGridSize - 1.0), 0.0);
+					const int z_min = std::max(std::min(dz_min, acceptGridSize - 1.0), 0.0);
 
-					int x_max = std::max(std::min(dx_max, acceptGridSize - 1.0), 0.0);
-					int y_max = std::max(std::min(dy_max, acceptGridSize - 1.0), 0.0);
-					int z_max = std::max(std::min(dz_max, acceptGridSize - 1.0), 0.0);
+					const int x_max = std::max(std::min(dx_max, acceptGridSize - 1.0), 0.0);
+					const int y_max = std::max(std::min(dy_max, acceptGridSize - 1.0), 0.0);
+					const int z_max = std::max(std::min(dz_max, acceptGridSize - 1.0), 0.0);
 
 					for (int x = x_min; x <= x_max; x++) {
 						for (int y = y_min; y <= y_max; y++) {
 							for (int z = z_min; z <= z_max; z++) {
-								int index = x + y * acceptGridSize + z * acceptGridSize * acceptGridSize;
+								const int index = x + y * acceptGridSize + z * acceptGridSize * acceptGridSize;
 
 								auto& list = gridAccepted[index];
 
 								for (auto& point : list) {
-									double dd = squaredDistance(point, candidate);
+									const double dd = squaredDistance(point, candidate);
 
 									if (dd < squaredSpacing) {
 
@@ -428,7 +428,7 @@ struct SamplerPoissonAverage : public Sampler {
 					continue;
 				}
 
-				auto numRejected = numRejectedPerChild[childIndex];
+				const auto numRejected = numRejectedPerChild[childIndex];
 				auto& acceptedFlags = acceptedChildPointFlags[childIndex];
 				auto rejected = make_shared<Buffer>(child->numPoints * attributes.bytes);
 
@@ -437,7 +437,7 @@ struct SamplerPoissonAverage : public Sampler {
 					int64_t pointOffset = i * attributes.bytes;
 
 					
-					Point& p = points[mainToSortMapping[j]];
+					const Point& p = points[mainToSortMapping[j]];
 
 					uint16_t* rgbTarget = reinterpret_cast<uint16_t*>(child->points->data_u8 + i * attributes.bytes + offsetRGB);
 					rgbTarget[0] = p.r / p.w;

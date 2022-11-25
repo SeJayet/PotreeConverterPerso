@@ -72,17 +72,17 @@ namespace indexer{
 		auto jsAttributes = js["attributes"];
 		for (auto jsAttribute : jsAttributes) {
 
-			string name = jsAttribute["name"];
-			string description = jsAttribute["description"];
-			int64_t size = jsAttribute["size"];
-			int64_t numElements = jsAttribute["numElements"];
-			int64_t elementSize = jsAttribute["elementSize"];
-			AttributeType type = typenameToType(jsAttribute["type"]);
+			const string name = jsAttribute["name"];
+			const string description = jsAttribute["description"];
+			const int64_t size = jsAttribute["size"];
+			const int64_t numElements = jsAttribute["numElements"];
+			const int64_t elementSize = jsAttribute["elementSize"];
+			const AttributeType type = typenameToType(jsAttribute["type"]);
 
-			auto jsMin = jsAttribute["min"];
-			auto jsMax = jsAttribute["max"];
-			auto jsScale = jsAttribute["scale"];
-			auto jsOffset = jsAttribute["offset"];
+			const auto jsMin = jsAttribute["min"];
+			const auto jsMax = jsAttribute["max"];
+			const auto jsScale = jsAttribute["scale"];
+			const auto jsOffset = jsAttribute["offset"];
 
 			// int64_t mask = 0;
 			// if(jsAttribute.contains("mask")){
@@ -125,20 +125,20 @@ namespace indexer{
 			attributeList.push_back(attribute);
 		}
 
-		double scaleX = js["scale"][0];
-		double scaleY = js["scale"][1];
-		double scaleZ = js["scale"][2];
+		const double scaleX = js["scale"][0];
+		const double scaleY = js["scale"][1];
+		const double scaleZ = js["scale"][2];
 
-		double offsetX = js["offset"][0];
-		double offsetY = js["offset"][1];
-		double offsetZ = js["offset"][2];
+		const double offsetX = js["offset"][0];
+		const double offsetY = js["offset"][1];
+		const double offsetZ = js["offset"][2];
 
 		Attributes attributes(attributeList);
 		attributes.posScale = { scaleX, scaleY, scaleZ };
 		attributes.posOffset = { offsetX, offsetY, offsetZ };
 		
 
-		auto toID = [](string filename) -> string {
+		const auto toID = [](string filename) -> string {
 			string strID = stringReplace(filename, "chunk_", "");
 			strID = stringReplace(strID, ".bin", "");
 
@@ -161,7 +161,7 @@ namespace indexer{
 			BoundingBox box = { min, max };
 
 			for (int i = 1; i < chunkID.size(); i++) {
-				int index = chunkID[i] - '0'; // this feels so wrong...
+				const int index = chunkID[i] - '0'; // this feels so wrong...
 
 				box = childBoundingBoxOf(box.min, box.max, index);
 			}
@@ -183,7 +183,7 @@ namespace indexer{
 		lock_guard<mutex> lock(mtx_chunkRoot);
 
 		static int64_t offset = 0;
-		int64_t size = chunkRoot->points->size;
+		const int64_t size = chunkRoot->points->size;
 
 		fChunkRoots.write(chunkRoot->points->data_char, size);
 
@@ -222,7 +222,7 @@ namespace indexer{
 
 			if(parentName != ""){
 				auto parent = nodesMap[parentName];
-				int index = crnode->name.at(crnode->name.size() - 1) - '0';
+				const int index = crnode->name.at(crnode->name.size() - 1) - '0';
 
 				parent->children[index] = crnode;
 			}
@@ -303,7 +303,7 @@ namespace indexer{
 			string octreePath = targetDir + "/tmpChunkRoots.bin";
 
 			shared_ptr<Node> node = task->node;
-			int64_t start = task->offset;
+			const int64_t start = task->offset;
 			int64_t size = task->size;
 
 			auto buffer = make_shared<Buffer>(size);
@@ -326,7 +326,7 @@ namespace indexer{
 		using namespace std::chrono_literals;
 
 		while (true) {
-			auto backlog = writer->backlogSizeMB();
+			const auto backlog = writer->backlogSizeMB();
 
 			if (backlog > maxMegabytes) {
 				std::this_thread::sleep_for(10ms);
@@ -341,7 +341,7 @@ namespace indexer{
 
 		while (true) {
 			auto memoryData = getMemoryData();
-			auto usedMemoryMB = memoryData.virtual_usedByProcess / (1024 * 1024);
+			const auto usedMemoryMB = memoryData.virtual_usedByProcess / (1024 * 1024);
 
 			if (usedMemoryMB > maxMegabytes) {
 				std::this_thread::sleep_for(10ms);
@@ -353,11 +353,11 @@ namespace indexer{
 
 string Indexer::createMetadata(Options options, State& state, Hierarchy hierarchy) {
 
-	auto min = root->min;
-	auto max = root->max;
+	const auto min = root->min;
+	const auto max = root->max;
 
-	auto d = [](double value) {
-		auto digits = std::numeric_limits<double>::max_digits10;
+	const auto d = [](double value) {
+		constexpr auto digits = std::numeric_limits<double>::max_digits10;
 
 		std::stringstream ss;
 		ss << std::setprecision(digits);
@@ -366,19 +366,19 @@ string Indexer::createMetadata(Options options, State& state, Hierarchy hierarch
 		return ss.str();
 	};
 
-	auto s = [](string str) {
+	const auto s = [](string str) {
 		return "\"" + str + "\"";
 	};
 
-	auto t = [](int numTabs) {
+	const auto t = [](int numTabs) {
 		return string(numTabs, '\t');
 	};
 
-	auto toJson = [d](Vector3 value) {
+	const auto toJson = [d](Vector3 value) {
 		return "[" + d(value.x) + ", " + d(value.y) + ", " + d(value.z) + "]";
 	};
 
-	auto vecToJson = [d](vector<double> values) {
+	const auto vecToJson = [d](vector<double> values) {
 
 		stringstream ss;
 		ss << "[";
@@ -396,7 +396,7 @@ string Indexer::createMetadata(Options options, State& state, Hierarchy hierarch
 		return ss.str();
 	};
 
-	auto vecI64ToJson = [](vector<int64_t> &values) {
+	const auto vecI64ToJson = [](vector<int64_t> &values) {
 
 		stringstream ss;
 		ss << "[";
@@ -414,7 +414,7 @@ string Indexer::createMetadata(Options options, State& state, Hierarchy hierarch
 		return ss.str();
 	};
 
-	auto octreeDepth = this->octreeDepth;
+	const auto octreeDepth = this->octreeDepth;
 	auto getHierarchyJsonString = [hierarchy, octreeDepth, t, s]() {
 
 		stringstream ss;
@@ -427,7 +427,7 @@ string Indexer::createMetadata(Options options, State& state, Hierarchy hierarch
 		return ss.str();
 	};
 
-	auto getBoundingBoxJsonString = [min, max, t, s, toJson, vecToJson]() {
+	const auto getBoundingBoxJsonString = [min, max, t, s, toJson, vecToJson]() {
 
 		stringstream ss;
 		ss << "{" << endl;
@@ -439,7 +439,7 @@ string Indexer::createMetadata(Options options, State& state, Hierarchy hierarch
 	};
 
 	Attributes& attributes = this->attributes;
-	auto getAttributesJsonString = [&attributes, t, s, toJson, vecToJson, vecI64ToJson]() {
+	const auto getAttributesJsonString = [&attributes, t, s, toJson, vecToJson, vecI64ToJson]() {
 
 		stringstream ss;
 		ss << "[" << endl;
@@ -527,7 +527,7 @@ HierarchyChunk Indexer::gatherChunk(Node* start, int levels) {
 	// create vector containing start node and all descendants up to and including levels deeper
 	// e.g. start 0 and levels 5 -> all nodes from level 0 to inclusive 5.
 
-	int64_t startLevel = start->name.size() - 1;
+	const int64_t startLevel = start->name.size() - 1;
 
 	HierarchyChunk chunk;
 	chunk.name = start->name;
@@ -539,7 +539,7 @@ HierarchyChunk Indexer::gatherChunk(Node* start, int levels) {
 
 		chunk.nodes.push_back(node);
 
-		int64_t childLevel = node->name.size();
+		const int64_t childLevel = node->name.size();
 		if (childLevel <= startLevel + levels) {
 
 			for (auto child : node->children) {
@@ -567,7 +567,7 @@ vector<HierarchyChunk> Indexer::createHierarchyChunks(Node* root, int hierarchyS
 		auto chunk = gatherChunk(chunkRoot, hierarchyStepSize);
 
 		for (auto node : chunk.nodes) {
-			bool isProxy = node->level() == chunkRoot->level() + hierarchyStepSize;
+			const bool isProxy = node->level() == chunkRoot->level() + hierarchyStepSize;
 
 			if (isProxy) {
 				stack.push_back(node);
@@ -586,7 +586,7 @@ Hierarchy Indexer::createHierarchy(string path) {
 	// type + childMask + numPoints + offset + size
 	constexpr int bytesPerNode = 1 + 1 + 4 + 8 + 8;
 
-	auto chunkSize = [](HierarchyChunk& chunk) {
+	const auto chunkSize = [](HierarchyChunk& chunk) {
 		return chunk.nodes.size() * bytesPerNode;
 	};
 
@@ -634,19 +634,19 @@ Hierarchy Indexer::createHierarchy(string path) {
 	int offset = 0;
 	for (int i = 0; i < chunks.size(); i++) {
 		auto& chunk = chunks[i];
-		auto chunkLevel = chunk.name.size() - 1;
+		const auto chunkLevel = chunk.name.size() - 1;
 
 		for (auto node : chunk.nodes) {
-			bool isProxy = node->level() == chunkLevel + hierarchyStepSize;
+			const bool isProxy = node->level() == chunkLevel + hierarchyStepSize;
 
-			uint8_t childMask = childMaskOf(node);
+			const uint8_t childMask = childMaskOf(node);
 			uint64_t targetOffset = 0;
 			uint64_t targetSize = 0;
-			uint32_t numPoints = uint32_t(node->numPoints);
+			const uint32_t numPoints = uint32_t(node->numPoints);
 			uint8_t type = node->isLeaf() ? TYPE::LEAF : TYPE::NORMAL;
 
 			if (isProxy) {
-				int targetChunkIndex = chunkPointers[node->name];
+				const int targetChunkIndex = chunkPointers[node->name];
 				auto targetChunk = chunks[targetChunkIndex];
 
 				type = TYPE::PROXY;
@@ -690,14 +690,14 @@ struct NodeCandidate {
 
 vector<vector<int64_t>> createSumPyramid(vector<int64_t>& grid, int gridSize) {
 
-	auto tStart = now();
+	const auto tStart = now();
 
-	int maxLevel = std::log2(gridSize);
+	const int maxLevel = std::log2(gridSize);
 	int currentGridSize = gridSize / 2;
 
 	vector<vector<int64_t>> sumPyramid(maxLevel + 1);
 	for (int level = 0; level < maxLevel; level++) {
-		auto cells = pow(8, level);
+		const auto cells = pow(8, level);
 		sumPyramid[level].resize(cells, 0);
 	}
 	sumPyramid[maxLevel] = grid;
@@ -708,8 +708,8 @@ vector<vector<int64_t>> createSumPyramid(vector<int64_t>& grid, int gridSize) {
 		for (int y = 0; y < currentGridSize; y++) {
 		for (int z = 0; z < currentGridSize; z++) {
 
-			auto index = mortonEncode_magicbits(z, y, x);
-			auto index_p1 = mortonEncode_magicbits(2 * z, 2 * y, 2 * x);
+			const auto index = mortonEncode_magicbits(z, y, x);
+			const auto index_p1 = mortonEncode_magicbits(2 * z, 2 * y, 2 * x);
 
 			int64_t sum = 0;
 			for (int i = 0; i < 8; i++) {
@@ -753,7 +753,7 @@ vector<NodeCandidate> createNodes(vector<vector<int64_t>>& pyramid) {
 
 	// pyramid starts at level 0 -> gridSize = 1
 	// 2 levels -> levels 0 and 1 -> maxLevel 1
-	auto maxLevel = pyramid.size() - 1;
+	const auto maxLevel = pyramid.size() - 1;
 
 	NodeCandidate root;
 	root.name = "";
@@ -769,14 +769,14 @@ vector<NodeCandidate> createNodes(vector<vector<int64_t>>& pyramid) {
 		NodeCandidate candidate = stack.back();
 		stack.pop_back();
 
-		auto level = candidate.level;
-		auto x = candidate.x;
-		auto y = candidate.y;
-		auto z = candidate.z;
+		const auto level = candidate.level;
+		const auto x = candidate.x;
+		const auto y = candidate.y;
+		const auto z = candidate.z;
 
-		auto& grid = pyramid[level];
-		auto index = mortonEncode_magicbits(z, y, x);
-		int64_t numPoints = grid[index];
+		const auto& grid = pyramid[level];
+		const auto index = mortonEncode_magicbits(z, y, x);
+		const int64_t numPoints = grid[index];
 
 		if (level == maxLevel) {
 			// don't split further at this time. May be split further in another pass
@@ -789,8 +789,8 @@ vector<NodeCandidate> createNodes(vector<vector<int64_t>>& pyramid) {
 
 			for (int i = 0; i < 8; i++) {
 
-				auto index_p1 = mortonEncode_magicbits(2 * z, 2 * y, 2 * x) + i;
-				auto count = pyramid[level + 1][index_p1];
+				const auto index_p1 = mortonEncode_magicbits(2 * z, 2 * y, 2 * x) + i;
+				const auto count = pyramid[level + 1][index_p1];
 
 				if (count > 0) {
 					NodeCandidate child;
@@ -832,30 +832,30 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 	}
 
 
-	auto tStart = now();
+	const auto tStart = now();
 
-	int64_t levels = 5; // = gridSize 32
-	int64_t counterGridSize = pow(2, levels);
+	constexpr int64_t levels = 5; // = gridSize 32
+	const int64_t counterGridSize = pow(2, levels);
 	vector<int64_t> counters(counterGridSize * counterGridSize * counterGridSize, 0);
 
-	auto min = node->min;
-	auto max = node->max;
-	auto size = max - min;
-	auto attributes = indexer->attributes;
-	int64_t bpp = attributes.bytes;
-	auto scale = attributes.posScale;
-	auto offset = attributes.posOffset;
+	const auto min = node->min;
+	const auto max = node->max;
+	const auto size = max - min;
+	const auto attributes = indexer->attributes;
+	const int64_t bpp = attributes.bytes;
+	const auto scale = attributes.posScale;
+	const auto offset = attributes.posOffset;
 
 	//vector<int32_t> dbg(pointBuffer->data_i32, pointBuffer->data_i32 + 10);
 
-	auto gridIndexOf = [&points, bpp, scale, offset, min, size, counterGridSize](int64_t pointIndex) {
+	const auto gridIndexOf = [&points, bpp, scale, offset, min, size, counterGridSize](int64_t pointIndex) {
 
-		int64_t pointOffset = pointIndex * bpp;
-		int32_t* xyz = reinterpret_cast<int32_t*>(points->data_u8 + pointOffset);
+		const int64_t pointOffset = pointIndex * bpp;
+		const int32_t* xyz = reinterpret_cast<int32_t*>(points->data_u8 + pointOffset);
 
-		double x = (xyz[0] * scale.x) + offset.x;
-		double y = (xyz[1] * scale.y) + offset.y;
-		double z = (xyz[2] * scale.z) + offset.z;
+		const double x = (xyz[0] * scale.x) + offset.x;
+		const double y = (xyz[1] * scale.y) + offset.y;
+		const double z = (xyz[2] * scale.z) + offset.z;
 
 		int64_t ix = double(counterGridSize) * (x - min.x) / size.x;
 		int64_t iy = double(counterGridSize) * (y - min.y) / size.y;
@@ -865,14 +865,14 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 		iy = std::max(int64_t(0), std::min(iy, counterGridSize - 1));
 		iz = std::max(int64_t(0), std::min(iz, counterGridSize - 1));
 
-		int64_t index = mortonEncode_magicbits(iz, iy, ix);
+		const int64_t index = mortonEncode_magicbits(iz, iy, ix);
 
 		return index;
 	};
 
 	// COUNTING
 	for (int64_t i = 0; i < numPoints; i++) {
-		auto index = gridIndexOf(i);
+		const auto index = gridIndexOf(i);
 		counters[index]++;
 	}
 
@@ -885,7 +885,7 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 		if(numPoints * bpp < 0){
 			stringstream ss;
 
-			auto size = numPoints * bpp;
+			const auto size = numPoints * bpp;
 			ss << "invalid call to malloc(" << to_string(size) << ")\n";
 			ss << "in function buildHierarchy()\n";
 			ss << "node: " << node->name << "\n";
@@ -899,8 +899,8 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 		Buffer tmp(numPoints * bpp);
 
 		for (int64_t i = 0; i < numPoints; i++) {
-			auto index = gridIndexOf(i);
-			auto targetIndex = offsets[index]++;
+			const auto index = gridIndexOf(i);
+			const auto targetIndex = offsets[index]++;
 
 			memcpy(tmp.data_u8 + targetIndex * bpp, points->data_u8 + i * bpp, bpp);
 		}
@@ -912,7 +912,7 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 
 	auto nodes = createNodes(pyramid);
 
-	auto expandTo = [node](NodeCandidate& candidate) {
+	const auto expandTo = [node](NodeCandidate& candidate) {
 
 		string startName = node->name;
 		string fullName = startName + candidate.name;
@@ -922,10 +922,10 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 
 		Node* currentNode = node;
 		for (int64_t i = startName.size(); i < fullName.size(); i++) {
-			int64_t index = fullName.at(i) - '0';
+			const int64_t index = fullName.at(i) - '0';
 
 			if (currentNode->children[index] == nullptr) {
-				auto childBox = childBoundingBoxOf(currentNode->min, currentNode->max, index);
+				const auto childBox = childBoundingBoxOf(currentNode->min, currentNode->max, index);
 				string childName = currentNode->name + to_string(index);
 
 				shared_ptr<Node> child = make_shared<Node>();
@@ -990,7 +990,7 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 		indexer->octreeDepth = std::max(indexer->octreeDepth, octreeDepth);
 	}
 
-	int64_t sanityCheck = 0;
+	constexpr int64_t sanityCheck = 0;
 	for (int64_t nodeIndex = 0; nodeIndex < needRefinement.size(); nodeIndex++) {
 		auto subject = needRefinement[nodeIndex];
 		auto buffer = subject->points;
@@ -1004,11 +1004,11 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 
 			unordered_map<string, int> counters;
 
-			auto bpp = attributes.bytes;
+			const auto bpp = attributes.bytes;
 
 			for (int64_t i = 0; i < numPoints; i++) {
 
-				int64_t sourceOffset = i * bpp;
+				const int64_t sourceOffset = i * bpp;
 
 				int32_t X, Y, Z;
 				memcpy(&X, buffer->data_u8 + sourceOffset + 0, 4);
@@ -1018,13 +1018,13 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 				stringstream ss;
 				ss << X << ", " << Y << ", " << Z;
 
-				string key = ss.str();
+				const string key = ss.str();
 				counters[key]++;
 			}
 
-			int64_t numPointsInBox = subject->numPoints;
-			int64_t numUniquePoints = counters.size();
-			int64_t numDuplicates = numPointsInBox - numUniquePoints;
+			const int64_t numPointsInBox = subject->numPoints;
+			const int64_t numUniquePoints = counters.size();
+			const int64_t numDuplicates = numPointsInBox - numUniquePoints;
 
 			if (numDuplicates < maxPointsPerChunk / 2) {
 				// few uniques, just unfavouribly distributed points
@@ -1044,13 +1044,13 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 				vector<int64_t> distinct;
 				unordered_map<string, int> handled;
 
-				auto contains = [](auto const & map, auto const & key) {
+				const auto contains = [](auto const & map, auto const & key) {
 					return map.find(key) != map.end();
 				};
 
 				for (int64_t i = 0; i < numPoints; i++) {
 
-					int64_t sourceOffset = i * bpp;
+					const int64_t sourceOffset = i * bpp;
 
 					int32_t X, Y, Z;
 					memcpy(&X, buffer->data_u8 + sourceOffset + 0, 4);
@@ -1060,7 +1060,7 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 					stringstream ss;
 					ss << X << ", " << Y << ", " << Z;
 
-					string key = ss.str();
+					const string key = ss.str();
 					
 					if (contains(counters, key)) {
 						if (!contains(handled, key)) {
@@ -1083,7 +1083,7 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 
 				logger::WARN(msg.str());
 
-				shared_ptr<Buffer> distinctBuffer = make_shared<Buffer>(distinct.size() * bpp);
+				const shared_ptr<Buffer> distinctBuffer = make_shared<Buffer>(distinct.size() * bpp);
 
 				for(int64_t i = 0; i < distinct.size(); i++){
 					distinctBuffer->write(buffer->data_u8 + i * bpp, bpp);
@@ -1098,7 +1098,7 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 
 		}
 
-		int64_t nextNumPoins = subject->numPoints;
+		const int64_t nextNumPoins = subject->numPoints;
 
 		subject->points = nullptr;
 		subject->numPoints = 0;
@@ -1122,7 +1122,7 @@ struct SoA {
 
 SoA toStructOfArrays(Node* node, Attributes attributes) {
 
-	auto numPoints = node->numPoints;
+	const auto numPoints = node->numPoints;
 	uint8_t* source = node->points->data_u8;
 
 	unordered_map<string, shared_ptr<Buffer>> buffers;
@@ -1140,7 +1140,7 @@ SoA toStructOfArrays(Node* node, Attributes attributes) {
 
 			for (int64_t i = 0; i < numPoints; i++) {
 
-				int64_t pointOffset = i * attributes.bytes;
+				const int64_t pointOffset = i * attributes.bytes;
 
 
 				uint16_t r, g, b;
@@ -1168,7 +1168,7 @@ SoA toStructOfArrays(Node* node, Attributes attributes) {
 		
 			for (int64_t i = 0; i < numPoints; i++) {
 
-				int64_t pointOffset = i * attributes.bytes;
+				const int64_t pointOffset = i * attributes.bytes;
 
 				// MORTON
 
@@ -1189,22 +1189,22 @@ SoA toStructOfArrays(Node* node, Attributes attributes) {
 
 
 			int64_t i = 0;
-			for (P p : ps) {
+			for (const P &p : ps) {
 
-				uint32_t mx = p.x - min.x;
-				uint32_t my = p.y - min.y;
-				uint32_t mz = p.z - min.z;
+				const uint32_t mx = p.x - min.x;
+				const uint32_t my = p.y - min.y;
+				const uint32_t mz = p.z - min.z;
 
-				uint32_t mx_l = (mx & 0x0000'ffff);
-				uint32_t my_l = (my & 0x0000'ffff);
-				uint32_t mz_l = (mz & 0x0000'ffff);
+				const uint32_t mx_l = (mx & 0x0000'ffff);
+				const uint32_t my_l = (my & 0x0000'ffff);
+				const uint32_t mz_l = (mz & 0x0000'ffff);
 
-				uint32_t mx_h = mx >> 16;
-				uint32_t my_h = my >> 16;
-				uint32_t mz_h = mz >> 16;
-
-				auto mc_l = mortonEncode_magicbits(mx_l, my_l, mz_l);
-				auto mc_h = mortonEncode_magicbits(mx_h, my_h, mz_h);
+				const uint32_t mx_h = mx >> 16;
+				const uint32_t my_h = my >> 16;
+				const uint32_t mz_h = mz >> 16;
+				
+				const auto mc_l = mortonEncode_magicbits(mx_l, my_l, mz_l);
+				const auto mc_h = mortonEncode_magicbits(mx_h, my_h, mz_h);
 
 				//{ // try decode and compare
 
@@ -1306,7 +1306,7 @@ SoA toStructOfArrays(Node* node, Attributes attributes) {
 
 shared_ptr<Buffer> compress(Node* node, Attributes attributes) {
 
-	auto numPoints = node->numPoints;
+	const auto numPoints = node->numPoints;
 	auto soa = toStructOfArrays(node, attributes);
 
 	std::sort(soa.mcs.begin(), soa.mcs.end(), [](MortonCode& a, MortonCode& b) {
@@ -1319,7 +1319,7 @@ shared_ptr<Buffer> compress(Node* node, Attributes attributes) {
 
 	});
 
-	auto mapName = [](string name) {
+	const auto mapName = [](string name) {
 		if (name == "position") {
 			return string("position_morton");
 		} else if (name == "rgb") {
@@ -1330,7 +1330,7 @@ shared_ptr<Buffer> compress(Node* node, Attributes attributes) {
 	};
 
 	int64_t bufferSize = 0;
-	for (Attribute& attribute : attributes.list) {
+	for (const Attribute& attribute : attributes.list) {
 		string name = mapName(attribute.name);
 		auto buffer = soa.buffers[name];
 
@@ -1338,7 +1338,7 @@ shared_ptr<Buffer> compress(Node* node, Attributes attributes) {
 	}
 
 	auto bufferMerged = make_shared<Buffer>(bufferSize);
-	for (Attribute& attribute : attributes.list) {
+	for (const Attribute& attribute : attributes.list) {
 
 		string name = mapName(attribute.name);
 
@@ -1357,11 +1357,11 @@ shared_ptr<Buffer> compress(Node* node, Attributes attributes) {
 	{
 		auto buffer = bufferMerged;
 
-		int quality = 6;
-		int lgwin = BROTLI_DEFAULT_WINDOW;
-		auto mode = BROTLI_DEFAULT_MODE;
-		uint8_t* input_buffer = buffer->data_u8;
-		size_t input_size = buffer->size;
+		constexpr int quality = 6;
+		constexpr int lgwin = BROTLI_DEFAULT_WINDOW;
+		constexpr auto mode = BROTLI_DEFAULT_MODE;
+		const uint8_t* input_buffer = buffer->data_u8;
+		const size_t input_size = buffer->size;
 
 		size_t encoded_size = input_size * 1.5 + 1'000;
 		shared_ptr<Buffer> outputBuffer = make_shared<Buffer>(encoded_size);
@@ -1444,8 +1444,8 @@ mutex mtx_backlog;
 int64_t Writer::backlogSizeMB() {
 	lock_guard<mutex> lock(mtx_backlog);
 
-	int64_t backlogBytes = backlog.size() * capacity;
-	int64_t backlogMB = backlogBytes / (1024 * 1024);
+	const int64_t backlogBytes = backlog.size() * capacity;
+	const int64_t backlogMB = backlogBytes / (1024 * 1024);
 
 	return backlogMB;
 }
@@ -1466,11 +1466,11 @@ void Writer::writeAndUnload(Node* node) {
 	}
 	
 
-	int64_t byteSize = sourceBuffer->size;
+	const int64_t byteSize = sourceBuffer->size;
 
 	node->byteSize = byteSize;
 
-	auto errorCheck = [node](int64_t size) {
+	const auto errorCheck = [node](int64_t size) {
 		if (size < 0) {
 			stringstream ss;
 
@@ -1490,7 +1490,7 @@ void Writer::writeAndUnload(Node* node) {
 	{
 		lock_guard<mutex> lock(mtx);
 
-		int64_t byteOffset = indexer->byteOffset.fetch_add(byteSize);
+		const int64_t byteOffset = indexer->byteOffset.fetch_add(byteSize);
 		node->byteOffset = byteOffset;
 
 		if (activeBuffer == nullptr) {
@@ -1538,7 +1538,7 @@ void Writer::launchWriterThread() {
 			}
 
 			if (buffer != nullptr) {
-				int64_t numBytes = buffer->pos;
+				const int64_t numBytes = buffer->pos;
 				indexer->bytesWritten += numBytes;
 				indexer->bytesToWrite -= numBytes;
 
@@ -1585,7 +1585,7 @@ void doIndexing(string targetDir, State& state, Options& options, Sampler& sampl
 	cout << "=== INDEXING                           " << endl;
 	cout << "=======================================" << endl;
 
-	auto tStart = now();
+	const auto tStart = now();
 
 	state.name = "INDEXING";
 	state.currentPass = 3;
@@ -1635,13 +1635,13 @@ void doIndexing(string targetDir, State& state, Options& options, Sampler& sampl
 	atomic_int64_t activeThreads = 0;
 	mutex mtx_nodes;
 	vector<shared_ptr<Node>> nodes;
-	int numThreads = numSampleThreads() + 4;
+	const int numThreads = numSampleThreads() + 4;
 	TaskPool<Task> pool(numThreads, [&onNodeCompleted, &onNodeDiscarded, &writeAndUnload, &state, &options, &activeThreads, tStart, &lastReport, &totalPoints, totalBytes, &pointsProcessed, chunks, &indexer, &nodes, &mtx_nodes, &sampler](auto task) {
 		
 		auto chunk = task->chunk;
 		auto chunkRoot = make_shared<Node>(chunk->id, chunk->min, chunk->max);
 		auto attributes = chunks->attributes;
-		int64_t bpp = attributes.bytes;
+		const int64_t bpp = attributes.bytes;
 
 		indexer.waitUntilWriterBacklogBelow(1'000);
 		activeThreads++;
@@ -1656,9 +1656,9 @@ void doIndexing(string targetDir, State& state, Options& options, Sampler& sampl
 		logger::INFO(msg.str());
 
 		indexer.bytesInMemory += filesize;
-		auto pointBuffer = readBinaryFile(chunk->file);
+		const auto pointBuffer = readBinaryFile(chunk->file);
 
-		auto tStartChunking = now();
+		const auto tStartChunking = now();
 
 		if (!options.keepChunks) {
 			fs::remove(chunk->file);
@@ -1681,10 +1681,10 @@ void doIndexing(string targetDir, State& state, Options& options, Sampler& sampl
 			indexer.root->addDescendant(chunkRoot);
 		}
 
-		lock_guard<mutex> lock(mtx_nodes);
+		const lock_guard<mutex> lock(mtx_nodes);
 
 		pointsProcessed = pointsProcessed + numPoints;
-		double progress = double(pointsProcessed) / double(totalPoints);
+		const double progress = double(pointsProcessed) / double(totalPoints);
 
 
 		if (now() - lastReport > 1.0) {
@@ -1734,7 +1734,7 @@ void doIndexing(string targetDir, State& state, Options& options, Sampler& sampl
 
 	// sample up to root node
 	if (chunks->list.size() == 1) {
-		auto node = nodes[0];
+		const auto node = nodes[0];
 
 		indexer.root = node;
 	} else if (!indexer.root->sampled){
@@ -1788,7 +1788,7 @@ void doIndexing(string targetDir, State& state, Options& options, Sampler& sampl
 		fs::remove(octreePath);
 	}
 
-	double duration = now() - tStart;
+	const double duration = now() - tStart;
 	state.values["duration(indexing)"] = formatNumber(duration, 3);
 
 

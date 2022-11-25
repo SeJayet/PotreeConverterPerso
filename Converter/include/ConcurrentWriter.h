@@ -61,17 +61,17 @@ struct ConcurrentWriter {
 					lock_guard<mutex> lockT(mtx_todo);
 					lock_guard<mutex> lockJ(mtx_join);
 
-					bool nothingTodo = todo.size() == 0;
+					const bool nothingTodo = todo.size() == 0;
 
 					if (nothingTodo && joinRequested) {
 						return;
 					}
 
-					int64_t mbTodo = todoBytes / (1024 * 1024);
-					int64_t mbDone = writtenBytes / (1024 * 1024);
+					const int64_t mbTodo = todoBytes / (1024 * 1024);
+					const int64_t mbDone = writtenBytes / (1024 * 1024);
 
-					double duration = now() - tStart;
-					double throughput = mbDone / duration;
+					const double duration = now() - tStart;
+					const double throughput = mbDone / duration;
 
 					state.name = "DISTRIBUTING";
 				}
@@ -116,7 +116,7 @@ struct ConcurrentWriter {
 				//	cout << "long lock duration: " + to_string(duration) << endl;
 				//}
 
-				bool nothingTodo = todo.size() == 0;
+				const bool nothingTodo = todo.size() == 0;
 
 				if (nothingTodo && joinRequested) {
 					return;

@@ -77,11 +77,11 @@ Options parseArguments(int argc, char** argv) {
 			logger::ERROR("file does not exist: " + source[0]);
 
 			exit(123);
-		} 
+		}
 
 		path = fs::canonical(path);
 
-		string suggestedBaseName = path.filename().string() + "_converted";
+		const string suggestedBaseName = path.filename().string() + "_converted";
 		outdir = sourcepath + "/../" + suggestedBaseName;
 
 		int i = 1;
@@ -106,17 +106,17 @@ Options parseArguments(int argc, char** argv) {
 
 	vector<string> attributes = args.get("attributes").as<vector<string>>();
 
-	bool generatePage = args.has("generate-page");
+	const bool generatePage = args.has("generate-page");
 	string pageName = "";
 	if (generatePage) {
 		pageName = args.get("generate-page").as<string>();
 	}
-	string pageTitle = args.get("title").as<string>();
-	string projection = args.get("projection").as<string>();
+	const string pageTitle = args.get("title").as<string>();
+	const string projection = args.get("projection").as<string>();
 
-	bool keepChunks = args.has("keep-chunks");
-	bool noChunking = args.has("no-chunking");
-	bool noIndexing = args.has("no-indexing");
+	const bool keepChunks = args.has("keep-chunks");
+	const bool noChunking = args.has("no-chunking");
+	const bool noIndexing = args.has("no-indexing");
 
 	Options options;
 	options.source = source;
@@ -180,14 +180,14 @@ Curated curateSources(vector<string> paths) {
 	sources.reserve(paths.size());
 
 	mutex mtx;
-	auto parallel = std::execution::par;
+	constexpr auto parallel = std::execution::par;
 	for_each(parallel, paths.begin(), paths.end(), [&mtx, &sources](string path) {
 
 		auto header = loadLasHeader(path);
 		auto filesize = fs::file_size(path);
 
-		Vector3 min = { header.min.x, header.min.y, header.min.z };
-		Vector3 max = { header.max.x, header.max.y, header.max.z };
+		const Vector3 min = { header.min.x, header.min.y, header.min.z };
+		const Vector3 max = { header.max.x, header.max.y, header.max.z };
 
 		Source source;
 		source.path = path;
@@ -234,20 +234,20 @@ Stats computeStats(vector<Source> sources){
 	}
 
 
-	double cubeSize = (max - min).max();
-	Vector3 size = { cubeSize, cubeSize, cubeSize };
+	const double cubeSize = (max - min).max();
+	const Vector3 size = { cubeSize, cubeSize, cubeSize };
 	max = min + cubeSize;
 
-	string strMin = "[" + to_string(min.x) + ", " + to_string(min.y) + ", " + to_string(min.z) + "]";
-	string strMax = "[" + to_string(max.x) + ", " + to_string(max.y) + ", " + to_string(max.z) + "]";
-	string strSize = "[" + to_string(size.x) + ", " + to_string(size.y) + ", " + to_string(size.z) + "]";
+	const string strMin = "[" + to_string(min.x) + ", " + to_string(min.y) + ", " + to_string(min.z) + "]";
+	const string strMax = "[" + to_string(max.x) + ", " + to_string(max.y) + ", " + to_string(max.z) + "]";
+	const string strSize = "[" + to_string(size.x) + ", " + to_string(size.y) + ", " + to_string(size.z) + "]";
 
 	string strTotalFileSize;
 	{
-		int64_t KB = 1024;
-		int64_t MB = 1024 * KB;
-		int64_t GB = 1024 * MB;
-		int64_t TB = 1024 * GB;
+		constexpr int64_t KB = 1024;
+		constexpr int64_t MB = 1024 * KB;
+		constexpr int64_t GB = 1024 * MB;
+		constexpr int64_t TB = 1024 * GB;
 
 		if (totalBytes >= TB) {
 			strTotalFileSize = formatNumber(double(totalBytes) / double(TB), 1) + " TB";
@@ -271,7 +271,7 @@ Stats computeStats(vector<Source> sources){
 	cout << "total file size: " << strTotalFileSize << endl;
 
 	{ // sanity check
-		bool sizeError = (size.x == 0.0) || (size.y == 0.0) || (size.z == 0);
+		const bool sizeError = (size.x == 0.0) || (size.y == 0.0) || (size.z == 0);
 		if (sizeError) {
 			logger::ERROR("invalid bounding box. at least one axis has a size of zero.");
 
@@ -393,13 +393,13 @@ void indexing(Options& options, string targetDir, State& state) {
 }
 
 void createReport(Options& options, vector<Source> sources, string targetDir, Stats& stats, State& state, double tStart) {
-	double duration = now() - tStart;
-	double throughputMB = (stats.totalBytes / duration) / (1024 * 1024);
-	double throughputP = (double(stats.totalPoints) / double(duration)) / 1'000'000.0;
+	const double duration = now() - tStart;
+	const double throughputMB = (stats.totalBytes / duration) / (1024 * 1024);
+	const double throughputP = (double(stats.totalPoints) / double(duration)) / 1'000'000.0;
 
-	double kb = 1024.0;
-	double mb = 1024.0 * 1024.0;
-	double gb = 1024.0 * 1024.0 * 1024.0;
+	constexpr double kb = 1024.0;
+	constexpr double mb = 1024.0 * 1024.0;
+	constexpr double gb = 1024.0 * 1024.0 * 1024.0;
 	double inputSize = 0;
 	string inputSizeUnit = "";
 	if (stats.totalBytes <= 10.0 * kb) {
@@ -433,7 +433,7 @@ void createReport(Options& options, vector<Source> sources, string targetDir, St
 
 	
 
-	for (auto [key, value] : state.values) {
+	for (const auto [key, value] : state.values) {
 		cout << key << ": \t" << value << endl;
 	}
 
@@ -441,24 +441,24 @@ void createReport(Options& options, vector<Source> sources, string targetDir, St
 }
 
 void generatePage(string exePath, string pagedir, string pagename) {
-	string templateDir = exePath + "/resources/page_template";
-	string templateSourcePath = templateDir + "/viewer_template.html";
+	const string templateDir = exePath + "/resources/page_template";
+	const string templateSourcePath = templateDir + "/viewer_template.html";
 
-	string pageTargetPath = pagedir + "/" + pagename + ".html";
+	const string pageTargetPath = pagedir + "/" + pagename + ".html";
 
 	try{
 		fs::copy(templateDir, pagedir, fs::copy_options::overwrite_existing | fs::copy_options::recursive);
-	} catch (std::exception & e) {
-		string msg = e.what();
+	} catch (const std::exception & e) {
+		const string msg = e.what();
 		logger::ERROR(msg);
 	}
 
 	fs::remove(pagedir + "/viewer_template.html");
 
 	{ // configure page template
-		string strTemplate = readFile(templateSourcePath);
+		const string strTemplate = readFile(templateSourcePath);
 
-		string strPointcloudTemplate = 
+		const string strPointcloudTemplate =
 		R"V0G0N(
 
 		Potree.loadPointCloud("<!-- URL -->", "<!-- NAME -->", e => {
@@ -478,12 +478,12 @@ void generatePage(string exePath, string pagedir, string pagename) {
 
 		)V0G0N";
 
-		string url = "./pointclouds/" + pagename + "/metadata.json";
+		const string url = "./pointclouds/" + pagename + "/metadata.json";
 
 		string strPointcloud = stringReplace(strPointcloudTemplate, "<!-- URL -->", url);
 		strPointcloud = stringReplace(strPointcloud, "<!-- NAME -->", pagename);
 
-		string strPage = stringReplace(strTemplate, "<!-- INCLUDE POINTCLOUD -->", strPointcloud);
+		const string strPage = stringReplace(strTemplate, "<!-- INCLUDE POINTCLOUD -->", strPointcloud);
 
 
 		writeFile(pageTargetPath, strPage);
@@ -510,7 +510,7 @@ int main(int argc, char** argv) {
 
 
 
-	double tStart = now(); 
+	const double tStart = now();
 
 	auto exePath = fs::canonical(fs::absolute(argv[0])).parent_path().string();
 

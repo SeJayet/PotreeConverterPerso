@@ -228,7 +228,7 @@ namespace indexer{
 						<< endl;
 				}
 
-				string filepath = path + "/" + key + ".bin";
+				const string filepath = path + "/" + key + ".bin";
 				fstream fout(filepath, ios::app | ios::out | ios::binary);
 				fout.write(buffer.data_char, buffer.size);
 				fout.close();

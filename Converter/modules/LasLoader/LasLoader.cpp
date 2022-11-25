@@ -44,7 +44,7 @@ LasTypeInfo lasTypeInfo(int typeID) {
 
 	if (mapping.find(typeID) != mapping.end()) {
 
-		AttributeType type = mapping[typeID];
+		const AttributeType type = mapping[typeID];
 
 		int numElements = 0;
 		if (typeID <= 10) {
@@ -74,7 +74,7 @@ LasHeader loadLasHeader(string path) {
 	laszip_header* header;
 	laszip_point* point;
 
-	laszip_BOOL request_reader = 1;
+	constexpr laszip_BOOL request_reader = 1;
 	laszip_BOOL is_compressed = iEndsWith(path, ".laz") ? 1 : 0;
 
 	laszip_create(&laszip_reader);
@@ -104,9 +104,9 @@ LasHeader loadLasHeader(string path) {
 
 	result.pointDataFormat = header->point_data_format;
 
-	int numVlrs = header->number_of_variable_length_records;
+	const int numVlrs = header->number_of_variable_length_records;
 	for (int i = 0; i < numVlrs; i++) {
-		auto laszip_vlr = header->vlrs[i];
+		const auto laszip_vlr = header->vlrs[i];
 
 		VLR vlr;
 

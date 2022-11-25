@@ -50,9 +50,9 @@ public:
 					{ // retrieve task or leave thread if done
 						lock_guard<mutex> lock(mtx_task);
 
-						bool allDone = tasks.size() == 0 && isClosed;
-						bool waitingForWork = tasks.size() == 0 && !allDone;
-						bool workAvailable = tasks.size() > 0;
+						const bool allDone = tasks.size() == 0 && isClosed;
+						const bool waitingForWork = tasks.size() == 0 && !allDone;
+						const bool workAvailable = tasks.size() > 0;
 
 						if (allDone) {
 							break;
