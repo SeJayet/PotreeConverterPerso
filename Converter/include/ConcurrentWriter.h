@@ -76,8 +76,6 @@ struct ConcurrentWriter {
 					state.name = "DISTRIBUTING";
 				}
 
-				
-
 				std::this_thread::sleep_for(100ms);
 			}
 		});
@@ -146,7 +144,6 @@ struct ConcurrentWriter {
 						locks[path] = 1;
 					}
 
-					
 				}
 			}
 
@@ -154,7 +151,7 @@ struct ConcurrentWriter {
 			if (work.size() == 0) {
 				std::this_thread::sleep_for(10ms);
 				continue;
-			} 
+			}
 
 			fstream fout;
 			fout.open(path, ios::out | ios::app | ios::binary);
@@ -195,7 +192,6 @@ struct ConcurrentWriter {
 			//cout << "joinRequested" << endl;
 			joinRequested = true;
 		}
-		
 
 		for (auto& t : threads) {
 			t.join();

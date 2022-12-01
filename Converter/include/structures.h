@@ -156,7 +156,7 @@ struct Sampler {
 
 	}
 
-	virtual void sample(Node* node, Attributes attributes, double baseSpacing, 
+	virtual void sample(Node* node, Attributes attributes, double baseSpacing,
 		function<void(Node*)> callbackNodeCompleted,
 		function<void(Node*)> callbackNodeDiscarded
 	) = 0;

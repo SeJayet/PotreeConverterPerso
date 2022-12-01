@@ -80,8 +80,6 @@ namespace indexer{
 
 	shared_ptr<Chunks> getChunks(string pathIn);
 
-	
-
 	struct Indexer;
 
 	struct Writer {
@@ -163,7 +161,7 @@ namespace indexer{
 
 		void flush(int hierarchyStepSize){
 			lock_guard<mutex> lock(mtx);
-			
+
 			this->write(buffer, hierarchyStepSize);
 			buffer.clear();
 		}
@@ -204,7 +202,6 @@ namespace indexer{
 			// };                              ===
 			//                                  48
 
-			
 			for(auto [key, groupedNodes] : groups){
 
 				Buffer buffer(48 * groupedNodes.size());
@@ -221,7 +218,7 @@ namespace indexer{
 					buffer.set<uint32_t>(node.byteSize,   48 * i + 43);
 					buffer.set<char    >('\n',             48 * i + 47);
 
-					ss << rightPad(name, 10, ' ') 
+					ss << rightPad(name, 10, ' ')
 						<< leftPad(to_string(node.numPoints), 8, ' ')
 						<< leftPad(to_string(node.byteOffset), 12, ' ')
 						<< leftPad(to_string(node.byteSize), 12, ' ')

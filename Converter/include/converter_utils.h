@@ -136,7 +136,7 @@ inline BoundingBox childBoundingBoxOf(Vector3 min, Vector3 max, int index) {
 }
 
 inline void dbgPrint_ts_later(string message, bool now = false) {
-	
+
 	static vector<string> data;
 
 	static mutex mtx;
@@ -150,9 +150,8 @@ inline void dbgPrint_ts_later(string message, bool now = false) {
 		}
 
 		data.clear();
-	} 
+	}
 
-	
 }
 
 

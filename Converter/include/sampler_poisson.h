@@ -11,8 +11,8 @@
 struct SamplerPoisson : public Sampler {
 
 	// subsample a local octree from bottom up
-	void sample(Node* node, Attributes attributes, double baseSpacing, 
-		function<void(Node*)> onNodeCompleted, 
+	void sample(Node* node, Attributes attributes, double baseSpacing,
+		function<void(Node*)> onNodeCompleted,
 		function<void(Node*)> onNodeDiscarded
 	) override {
 
@@ -278,9 +278,9 @@ struct SamplerPoisson : public Sampler {
 
 					onNodeCompleted(child.get());
 				} else if(numRejected == 0) {
-					// the parent has taken all points from this child, 
+					// the parent has taken all points from this child,
 					// so make this child an empty inner node.
-					// Otherwise, the hierarchy file will claim that 
+					// Otherwise, the hierarchy file will claim that
 					// this node has points but because it doesn't have any,
 					// decompressing the nonexistent point buffer fails
 					// https://github.com/potree/potree/issues/1125

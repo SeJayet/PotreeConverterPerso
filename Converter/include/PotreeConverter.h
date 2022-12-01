@@ -29,8 +29,8 @@ struct ScaleOffset {
 inline ScaleOffset computeScaleOffset(Vector3 min, Vector3 max, Vector3 targetScale) {
 
 	const Vector3 center = (min + max) / 2.0;
-	
-	// using the center as the origin would be the "right" choice but 
+
+	// using the center as the origin would be the "right" choice but
 	// it would lead to negative integer coordinates.
 	// since the Potree 1.7 release mistakenly interprets the coordinates as uint values,
 	// we can't do that and we use 0/0/0 as the bounding box minimum as the origin instead.
@@ -62,7 +62,7 @@ inline ScaleOffset computeScaleOffset(Vector3 min, Vector3 max, Vector3 targetSc
 	//	round(offset.y, scale.y),
 	//	round(offset.z, scale.z),
 	//};
-	
+
 	//cout << "offset: " << offset.toString() << endl;
 	//cout << "roundedOffset: " << roundedOffset.toString() << endl;
 
@@ -94,7 +94,7 @@ inline vector<Attribute> parseExtraAttributes(LasHeader& header) {
 				const int offset = i * recordSize;
 				const uint8_t type = read<uint8_t>(extraData, offset + 2);
 				const uint8_t options = read<uint8_t>(extraData, offset + 3);
-				
+
 				char chrName[32];
 				memcpy(chrName, extraData.data() + offset + 4, 32);
 				string name(chrName);
@@ -126,8 +126,6 @@ inline vector<Attribute> parseExtraAttributes(LasHeader& header) {
 			}
 		}
 	}
-
-	
 
 	return attributes;
 }

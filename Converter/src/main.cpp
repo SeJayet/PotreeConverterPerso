@@ -224,7 +224,7 @@ Stats computeStats(vector<Source> sources){
 		min.x = std::min(min.x, source.min.x);
 		min.y = std::min(min.y, source.min.y);
 		min.z = std::min(min.z, source.min.z);
-								
+
 		max.x = std::max(max.x, source.max.x);
 		max.y = std::max(max.y, source.max.y);
 		max.z = std::max(max.z, source.max.z);
@@ -259,7 +259,6 @@ Stats computeStats(vector<Source> sources){
 			strTotalFileSize = formatNumber(double(totalBytes), 1) + " bytes";
 		}
 	}
-	
 
 	cout << "cubicAABB: {\n";
 	cout << "	\"min\": " << strMin << ",\n";
@@ -270,76 +269,76 @@ Stats computeStats(vector<Source> sources){
 	cout << "#points: " << formatNumber(totalPoints) << endl;
 	cout << "total file size: " << strTotalFileSize << endl;
 
-	{ // sanity check
+	{ //	sanity check
 		const bool sizeError = (size.x == 0.0) || (size.y == 0.0) || (size.z == 0);
 		if (sizeError) {
 			logger::ERROR("invalid bounding box. at least one axis has a size of zero.");
 
 			exit(123);
 		}
-		
+
 	}
 
 	return { min, max, totalBytes, totalPoints };
 }
 
-// struct Monitor {
-// 	thread t;
-// 	bool stopRequested = false;
+//	struct Monitor {
+//		thread t;
+//		bool stopRequested = false;
 
-// 	void stop() {
+//		void stop() {
 
-// 		stopRequested = true;
+//			stopRequested = true;
 
-// 		t.join();
-// 	}
-// };
+//			t.join();
+//		}
+//	};
 
-// shared_ptr<Monitor> startMonitoring(State& state) {
+//	shared_ptr<Monitor> startMonitoring(State& state) {
 
-// 	shared_ptr<Monitor> monitor = make_shared<Monitor>();
+//		shared_ptr<Monitor> monitor = make_shared<Monitor>();
 
-// 	monitor->t = thread([monitor, &state]() {
+//		monitor->t = thread([monitor, &state]() {
 
-// 		using namespace std::chrono_literals;
+//			using namespace std::chrono_literals;
 
-// 		std::this_thread::sleep_for(1'000ms);
+//			std::this_thread::sleep_for(1'000ms);
 
-// 		while (!monitor->stopRequested) {
+//			while (!monitor->stopRequested) {
 
-// 			auto ram = getMemoryData();
-// 			auto CPU = getCpuData();
-// 			double GB = 1024.0 * 1024.0 * 1024.0;
+//				auto ram = getMemoryData();
+//				auto CPU = getCpuData();
+//				double GB = 1024.0 * 1024.0 * 1024.0;
 
-// 			double throughput = (double(state.pointsProcessed) / state.duration) / 1'000'000.0;
+//				double throughput = (double(state.pointsProcessed) / state.duration) / 1'000'000.0;
 
-// 			double progressPass = 100.0 * state.progress();
-// 			double progressTotal = (100.0 * double(state.currentPass - 1) + progressPass) / double(state.numPasses);
+//				double progressPass = 100.0 * state.progress();
+//				double progressTotal = (100.0 * double(state.currentPass - 1) + progressPass) / double(state.numPasses);
 
-// 			string strProgressPass = formatNumber(progressPass) + "%";
-// 			string strProgressTotal = formatNumber(progressTotal) + "%";
-// 			string strTime = formatNumber(now()) + "s";
-// 			string strDuration = formatNumber(state.duration) + "s";
-// 			string strThroughput = formatNumber(throughput) + "MPs";
+//				string strProgressPass = formatNumber(progressPass) + "%";
+//				string strProgressTotal = formatNumber(progressTotal) + "%";
+//				string strTime = formatNumber(now()) + "s";
+//				string strDuration = formatNumber(state.duration) + "s";
+//				string strThroughput = formatNumber(throughput) + "MPs";
 
-// 			string strRAM = formatNumber(double(ram.virtual_usedByProcess) / GB, 1)
-// 				+ "GB (highest " + formatNumber(double(ram.virtual_usedByProcess_max) / GB, 1) + "GB)";
-// 			string strCPU = formatNumber(CPU.usage) + "%";
+//				string strRAM = formatNumber(double(ram.virtual_usedByProcess) / GB, 1)
+//					+ "GB (highest " + formatNumber(double(ram.virtual_usedByProcess_max) / GB, 1) + "GB)";
+//				string strCPU = formatNumber(CPU.usage) + "%";
 
-// 			stringstream ss;
-// 			ss << "[" << strProgressTotal << ", " << strTime << "], "
-// 				<< "[" << state.name << ": " << strProgressPass << ", duration: " << strDuration << ", throughput: " << strThroughput << "]"
-// 				<< "[RAM: " << strRAM << ", CPU: " << strCPU << "]";
+//				stringstream ss;
+//				ss << "[" << strProgressTotal << ", " << strTime << "], "
+//					<< "[" << state.name << ": " << strProgressPass << ", duration: " << strDuration << ", throughput: " << strThroughput << "]"
+//					<< "[RAM: " << strRAM << ", CPU: " << strCPU << "]";
 
-// 			cout << ss.str() << endl;
+//				cout << ss.str() << endl;
 
-// 			std::this_thread::sleep_for(1'000ms);
-// 		}
+//				std::this_thread::sleep_for(1'000ms);
+//			}
 
-// 	});
+//		});
 
-// 	return monitor;
-// }
+//		return monitor;
+//	}
 
 
 void chunking(Options& options, vector<Source>& sources, string targetDir, Stats& stats, State& state, Attributes outputAttributes, Monitor* monitor) {
@@ -358,7 +357,7 @@ void chunking(Options& options, vector<Source>& sources, string targetDir, Stats
 
 	} else if (options.chunkMethod == "SKIP") {
 
-		// skip chunking
+		//	skip chunking
 
 	} else {
 
@@ -431,8 +430,6 @@ void createReport(Options& options, vector<Source> sources, string targetDir, St
 	cout << "throughput (points/s)  " << formatNumber(throughputP, 1) << "M" << endl;
 	cout << "output location:       " << targetDir << endl;
 
-	
-
 	for (const auto [key, value] : state.values) {
 		cout << key << ": \t" << value << endl;
 	}
@@ -455,7 +452,7 @@ void generatePage(string exePath, string pagedir, string pagename) {
 
 	fs::remove(pagedir + "/viewer_template.html");
 
-	{ // configure page template
+	{ //	configure page template
 		const string strTemplate = readFile(templateSourcePath);
 
 		const string strPointcloudTemplate =
@@ -464,15 +461,15 @@ void generatePage(string exePath, string pagedir, string pagename) {
 		Potree.loadPointCloud("<!-- URL -->", "<!-- NAME -->", e => {
 			let scene = viewer.scene;
 			let pointcloud = e.pointcloud;
-			
+
 			let material = pointcloud.material;
 			material.size = 1;
 			material.pointSizeType = Potree.PointSizeType.ADAPTIVE;
 			material.shape = Potree.PointShape.SQUARE;
 			material.activeAttributeName = "rgba";
-			
+
 			scene.addPointCloud(pointcloud);
-			
+
 			viewer.fitToScreen();
 		});
 
@@ -496,17 +493,16 @@ void generatePage(string exePath, string pagedir, string pagename) {
 
 int main(int argc, char** argv) {
 
-	
-	// { // DEBUG STUFF
+	//	{ //	DEBUG STUFF
 
-	// 	string hierarchyDir = "D:/dev/pointclouds/Riegl/retz_converted/.hierarchyChunks";
-	// 	int hierarchyStepSize = 4;
+	//		string hierarchyDir = "D:/dev/pointclouds/Riegl/retz_converted/.hierarchyChunks";
+	//		int hierarchyStepSize = 4;
 
-	// 	HierarchyBuilder builder(hierarchyDir, hierarchyStepSize);
-	// 	builder.build();
+	//		HierarchyBuilder builder(hierarchyDir, hierarchyStepSize);
+	//		builder.build();
 
-	// 	return 0;
-	// }
+	//		return 0;
+	//	}
 
 
 
@@ -530,7 +526,6 @@ int main(int argc, char** argv) {
 	cout << toString(outputAttributes);
 
 	auto stats = computeStats(sources);
-	
 	string targetDir = options.outdir;
 	if (options.generatePage) {
 
@@ -547,12 +542,12 @@ int main(int argc, char** argv) {
 	state.pointsTotal = stats.totalPoints;
 	state.bytesProcessed = stats.totalBytes;
 
-	// auto monitor = startMonitoring(state);
+	//	auto monitor = startMonitoring(state);
 	auto monitor = make_shared<Monitor>(&state);
 	monitor->start();
 
 
-	{ // this is the real important stuff
+	{ //	this is the real important stuff
 
 		chunking(options, sources, targetDir, stats, state, outputAttributes, monitor.get());
 

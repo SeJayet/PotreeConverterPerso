@@ -167,15 +167,13 @@ namespace chunker_countsort_laszip {
 			Vector3 max = task->max;
 
 			stringstream ss;
-			ss << "counting " << fs::path(task->path).filename().string() 
+			ss << "counting " << fs::path(task->path).filename().string()
 				<< ", first point: " << formatNumber(task->firstPoint)
 				<< ", num points: " << formatNumber(task->numPoints);
 			// cout << ss.str();
 			// monitor->print("counter message", ss.str());
 
 			logger::INFO(ss.str());
-			
-			
 
 			thread_local unique_ptr<void, void(*)(void*)> buffer(nullptr, free);
 			thread_local int64_t bufferSize = -1;
@@ -295,7 +293,7 @@ namespace chunker_countsort_laszip {
 				laszip_open_reader(laszip_reader, source.path.c_str(), &is_compressed);
 				laszip_get_header_pointer(laszip_reader, &header);
 			}
-			
+
 			const int64_t bpp = header->point_data_record_length;
 			const int64_t numPoints = std::max(uint64_t(header->number_of_point_records), header->extended_number_of_point_records);
 
@@ -313,7 +311,7 @@ namespace chunker_countsort_laszip {
 					numToRead = batchSize;
 					pointsLeft = pointsLeft - batchSize;
 				}
-				
+
 				const int64_t firstByte = header->offset_to_point_data + numRead * bpp;
 				const int64_t numBytes = numToRead * bpp;
 
@@ -324,7 +322,7 @@ namespace chunker_countsort_laszip {
 				task->firstByte = firstByte;
 				task->numBytes = numBytes;
 				task->numPoints = numToRead;
-				task->bpp = header->point_data_record_length; 
+				task->bpp = header->point_data_record_length;
 				//task->scale = { header->x_scale_factor, header->y_scale_factor, header->z_scale_factor };
 				//task->offset = { header->x_offset, header->y_offset, header->z_offset };
 				task->min = min;
@@ -398,7 +396,7 @@ namespace chunker_countsort_laszip {
 					uint16_t rgb[] = { 0, 0, 0 };
 					memcpy(rgb, &point->rgb, 6);
 					memcpy(data + offset + offsetRGB, rgb, 6);
-					
+
 					attributeRGB->min.x = std::min(attributeRGB->min.x, double(rgb[0]));
 					attributeRGB->min.y = std::min(attributeRGB->min.y, double(rgb[1]));
 					attributeRGB->min.z = std::min(attributeRGB->min.z, double(rgb[2]));
@@ -470,7 +468,7 @@ namespace chunker_countsort_laszip {
 			const int offsetClassification = outputAttributes.getOffset("classification");
 			Attribute* attributeClassification = outputAttributes.get("classification");
 			auto classification = [data, point, header, offsetClassification, attributeClassification](int64_t offset) {
-				
+
 				uint8_t value = 0;
 				if (point->extended_classification > 31){
 					value = point->extended_classification;
@@ -726,10 +724,10 @@ namespace chunker_countsort_laszip {
 			}
 
 			uint8_t* data = reinterpret_cast<uint8_t*>(buffer.get());
-			// memset necessary if attribute handlers don't set all values. 
+			// memset necessary if attribute handlers don't set all values.
 			// previous handlers from input with different point formats
 			// may have set the values before.
-			memset(data, 0, bufferSize); 
+			memset(data, 0, bufferSize);
 
 			writer->waitUntilMemoryBelow(2'000);
 
@@ -737,7 +735,7 @@ namespace chunker_countsort_laszip {
 			// per-thread copy of outputAttributes to compute min/max in a thread-safe way
 			// will be merged to global outputAttributes instance at the end of this function
 			Attributes outputAttributesCopy = outputAttributes;
-			
+
 			for(auto& attribute: outputAttributesCopy.list){
 				if(attribute.name == "classification"){
 					for(int i = 0; i < attribute.histogram.size(); i++){
@@ -761,7 +759,7 @@ namespace chunker_countsort_laszip {
 				laszip_get_point_pointer(laszip_reader, &point);
 
 				laszip_seek_point(laszip_reader, task->firstPoint);
-				
+
 				auto attributeHandlers = createAttributeHandlers(header, data, point, inputAttributes, outputAttributesCopy);
 
 				double coordinates[3];
@@ -833,7 +831,7 @@ namespace chunker_countsort_laszip {
 
 				return index;
 			};
-			
+
 			// COUNT POINTS PER BUCKET
 			vector<int64_t> counts(nodes.size(), 0);
 			for (int64_t i = 0; i < batchSize; i++) {
@@ -882,7 +880,7 @@ namespace chunker_countsort_laszip {
 				const int64_t bytes = numPoints * bpp;
 				buckets[i] = make_shared<Buffer>(bytes);
 			}
-			
+
 			// ADD POINTS TO BUCKETS
 			shared_ptr<Buffer> previousBucket = nullptr;
 			int64_t previousNodeIndex = -1;
@@ -925,7 +923,7 @@ namespace chunker_countsort_laszip {
 				target.max.z = std::max(target.max.z, source.max.z);
 
 				// target.mask = target.mask | source.mask;
-				
+
 				for(int j = 0; j < target.histogram.size(); j++){
 					target.histogram[j] = target.histogram[j] + source.histogram[j];
 				}
@@ -1053,8 +1051,8 @@ namespace chunker_countsort_laszip {
 		}
 
 		js["scale"] = vector<double>({
-			attributes.posScale.x, 
-			attributes.posScale.y, 
+			attributes.posScale.x,
+			attributes.posScale.y,
 			attributes.posScale.z});
 
 		js["offset"] = vector<double>({
@@ -1067,10 +1065,10 @@ namespace chunker_countsort_laszip {
 		writeFile(path, content);
 	}
 
-	// 
+	//
 	// XXX_high: variables of the higher/more detailed level of the pyramid that we're evaluating right now
 	// XXX_low: one level lower than _high; the target of the "downsampling" operation
-	// 
+	//
 	NodeLUT createLUT(vector<atomic_int32_t>& grid, int64_t gridSize) {
 		const auto tStart = now();
 
@@ -1092,7 +1090,7 @@ namespace chunker_countsort_laszip {
 		for (auto& value : grid) {
 			grid_high.push_back(value);
 		}
-		
+
 		const int64_t level_max = int64_t(log2(gridSize));
 
 		// - evaluate counting grid in "image pyramid" fashion
@@ -1139,7 +1137,7 @@ namespace chunker_countsort_laszip {
 
 					max = std::max(max, value);
 				}
-				
+
 
 				if (unmergeable || sum > maxPointsPerChunk) {
 
@@ -1246,7 +1244,6 @@ namespace chunker_countsort_laszip {
 				state.values["duration(chunking-distribute)"] = formatNumber(duration, 3);
 			}
 		}
-		
 
 		string metadataPath = targetDir + "/chunks/metadata.json";
 		const double cubeSize = (max - min).max();
@@ -1259,6 +1256,5 @@ namespace chunker_countsort_laszip {
 		state.values["duration(chunking-total)"] = formatNumber(duration, 3);
 
 	}
-
 
 }

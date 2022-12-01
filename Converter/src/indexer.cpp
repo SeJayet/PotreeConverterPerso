@@ -136,7 +136,6 @@ namespace indexer{
 		Attributes attributes(attributeList);
 		attributes.posScale = { scaleX, scaleY, scaleZ };
 		attributes.posOffset = { offsetX, offsetY, offsetZ };
-		
 
 		const auto toID = [](string filename) -> string {
 			string strID = stringReplace(filename, "chunk_", "");
@@ -231,7 +230,7 @@ namespace indexer{
 		// mark/flag/insert flushed chunk roots
 		for(auto fcr : flushedChunkRoots){
 			auto node = nodesMap[fcr.node->name];
-			
+
 			node->fcrs.push_back(fcr);
 			node->numPoints += fcr.node->numPoints;
 		}
@@ -241,7 +240,7 @@ namespace indexer{
 		static int64_t threshold = 5'000'000;
 
 		cr_root->traversePost([](CRNode* node){
-			
+
 			if(node->isLeaf()){
 
 			}else{
@@ -362,7 +361,7 @@ string Indexer::createMetadata(Options options, State& state, Hierarchy hierarch
 		std::stringstream ss;
 		ss << std::setprecision(digits);
 		ss << value;
-		
+
 		return ss.str();
 	};
 
@@ -493,7 +492,7 @@ string Indexer::createMetadata(Options options, State& state, Hierarchy hierarch
 			}
 
 		}
-		
+
 
 		ss << t(1) << "]";
 
@@ -940,7 +939,7 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 				currentNode = currentNode->children[index].get();
 			}
 
-			
+
 		}
 
 		return currentNode;
@@ -994,7 +993,7 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 	for (int64_t nodeIndex = 0; nodeIndex < needRefinement.size(); nodeIndex++) {
 		auto subject = needRefinement[nodeIndex];
 		auto buffer = subject->points;
-		
+
 		if (sanityCheck > needRefinement.size() * 2) {
 			logger::ERROR("failed to partition point cloud in indexer::buildHierarchy().");
 		}
@@ -1030,7 +1029,7 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 				// few uniques, just unfavouribly distributed points
 				// print warning but continue
 
-				stringstream ss;	
+				stringstream ss;
 				ss << "Encountered unfavourable point distribution. Conversion continues anyway because not many duplicates were encountered. ";
 				ss << "However, issues may arise. If you find an error, please report it at github. \n";
 				ss << "#points in box: " << numPointsInBox << ", #unique points in box: " << numUniquePoints << ", ";
@@ -1061,7 +1060,7 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 					ss << X << ", " << Y << ", " << Z;
 
 					const string key = ss.str();
-					
+
 					if (contains(counters, key)) {
 						if (!contains(handled, key)) {
 							distinct.push_back(i);
@@ -1165,7 +1164,7 @@ SoA toStructOfArrays(Node* node, Attributes attributes) {
 			min.x = std::numeric_limits<int64_t>::max();
 			min.y = std::numeric_limits<int64_t>::max();
 			min.z = std::numeric_limits<int64_t>::max();
-		
+
 			for (int64_t i = 0; i < numPoints; i++) {
 
 				const int64_t pointOffset = i * attributes.bytes;
@@ -1202,7 +1201,7 @@ SoA toStructOfArrays(Node* node, Attributes attributes) {
 				const uint32_t mx_h = mx >> 16;
 				const uint32_t my_h = my >> 16;
 				const uint32_t mz_h = mz >> 16;
-				
+
 				const auto mc_l = mortonEncode_magicbits(mx_l, my_l, mz_l);
 				const auto mc_h = mortonEncode_magicbits(mx_h, my_h, mz_h);
 
@@ -1260,13 +1259,11 @@ SoA toStructOfArrays(Node* node, Attributes attributes) {
 				}
 
 
-				
 				buffers["position_morton"] = bufferMc;
 			}
 
 
-		
-		} 
+		}
 
 		{
 
@@ -1281,8 +1278,6 @@ SoA toStructOfArrays(Node* node, Attributes attributes) {
 
 			buffers[attribute.name] = buffer;
 		}
-
-		
 
 		//vector<uint8_t> dbg1(buffer->data_u8, buffer->data_u8 + buffer->size);
 
@@ -1393,7 +1388,7 @@ shared_ptr<Buffer> compress(Node* node, Attributes attributes) {
 
 		out = make_shared<Buffer>(encoded_size);
 		memcpy(out->data, encoded_buffer, encoded_size);
-		
+
 		//{ // DEBUG
 		//	lock_guard<mutex> lock(mtx_dbg_compress);
 
@@ -1464,7 +1459,6 @@ void Writer::writeAndUnload(Node* node) {
 	} else {
 		sourceBuffer = node->points;
 	}
-	
 
 	const int64_t byteSize = sourceBuffer->size;
 
@@ -1508,7 +1502,7 @@ void Writer::writeAndUnload(Node* node) {
 		targetOffset = activeBuffer->pos;
 
 		activeBuffer->pos += byteSize;
-	}	
+	}
 
 	memcpy(buffer->data_char + targetOffset, sourceBuffer->data, byteSize);
 
@@ -1549,7 +1543,7 @@ void Writer::launchWriterThread() {
 				using namespace std::chrono_literals;
 				std::this_thread::sleep_for(10ms);
 			}
-			
+
 		}
 
 	}).detach();
@@ -1637,7 +1631,7 @@ void doIndexing(string targetDir, State& state, Options& options, Sampler& sampl
 	vector<shared_ptr<Node>> nodes;
 	const int numThreads = numSampleThreads() + 4;
 	TaskPool<Task> pool(numThreads, [&onNodeCompleted, &onNodeDiscarded, &writeAndUnload, &state, &options, &activeThreads, tStart, &lastReport, &totalPoints, totalBytes, &pointsProcessed, chunks, &indexer, &nodes, &mtx_nodes, &sampler](auto task) {
-		
+
 		auto chunk = task->chunk;
 		auto chunkRoot = make_shared<Node>(chunk->id, chunk->min, chunk->max);
 		auto attributes = chunks->attributes;
@@ -1712,7 +1706,7 @@ void doIndexing(string targetDir, State& state, Options& options, Sampler& sampl
 	indexer.fChunkRoots.close();
 
 	{ // process chunk roots in batches
-		
+
 		string tmpChunkRootsPath = targetDir + "/tmpChunkRoots.bin";
 		auto tasks = indexer.processChunkRoots();
 

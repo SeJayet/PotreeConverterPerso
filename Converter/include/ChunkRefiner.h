@@ -190,7 +190,7 @@ namespace ChunkRefiner {
 			pool.addTask(task);
 
 			start += batchSize * attributes.bytes;
-			
+
 			pointsLeft -= batchSize;
 		}
 
@@ -201,27 +201,19 @@ namespace ChunkRefiner {
 
 		// auto numPoints = points->size / bpp;
 
-		
-
-		
-
-		
-
 		// for(int64_t i = 0; i < numPoints; i++){
 		// 	auto index = gridIndexOf(i);
 		// 	counters[index]++;
 		// }
-		
-
 
 	}
 
 	void refine(string targetDir, State& state) {
-		
+
 		int64_t maxPointsPerChunk = 10'000'000;
 
 		printElapsedTime("refine start", 0);
-		
+
 		auto chunks = getChunks(targetDir);
 
 		auto bpp = chunks->attributes.bytes;
@@ -245,11 +237,8 @@ namespace ChunkRefiner {
 		}
 
 		printElapsedTime("refine end", 0);
-		
-
 
 	}
-
 
 }
 

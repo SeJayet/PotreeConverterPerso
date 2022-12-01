@@ -169,8 +169,8 @@ struct Buffer {
 		T value;
 
 		memcpy(
-			&value, 
-			data_u8 + position, 
+			&value,
+			data_u8 + position,
 			sizeof(T)
 		);
 
@@ -417,8 +417,8 @@ inline shared_ptr<Buffer> readBinaryFile(string path) {
 
 inline vector<uint8_t> readBinaryFile(string path, uint64_t start, uint64_t size) {
 
-	//ifstream file(path, ios::binary);	
-	
+	//ifstream file(path, ios::binary);
+
 	// the fopen version seems to be quite a bit faster than ifstream
 	auto file = fopen(path.c_str(), "rb");
 
@@ -489,7 +489,6 @@ inline void writeBinaryFile(string path, vector<T>& data) {
 		offset += batchSize;
 		remaining -= batchSize;
 	}
-	
 
 	of.close();
 }

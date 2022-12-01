@@ -157,59 +157,59 @@ CpuData getCpuData() {
 #include "string.h"
 
 int parseLine(char* line){
-    // This assumes that a digit will be found and the line ends in " Kb".
-    int i = strlen(line);
-    const char* p = line;
-    
-	while (*p < '0' || *p > '9'){ 
+	// This assumes that a digit will be found and the line ends in " Kb".
+	int i = strlen(line);
+	const char* p = line;
+
+	while (*p < '0' || *p > '9'){
 		p++;
 	}
-	
-    line[i - 3] = '\0';
-    i = atoi(p);
-	
-    return i;
+
+	line[i - 3] = '\0';
+	i = atoi(p);
+
+	return i;
 }
 
 int64_t getVirtualMemoryUsedByProcess(){ //Note: this value is in KB!
-    FILE* file = fopen("/proc/self/status", "r");
-    int64_t result = -1;
-    char line[128];
+	FILE* file = fopen("/proc/self/status", "r");
+	int64_t result = -1;
+	char line[128];
 
-    while (fgets(line, 128, file) != NULL){
-        if (strncmp(line, "VmSize:", 7) == 0){
-            result = parseLine(line);
-            break;
-        }
-    }
-    fclose(file);
-	
+	while (fgets(line, 128, file) != NULL){
+		if (strncmp(line, "VmSize:", 7) == 0){
+			result = parseLine(line);
+			break;
+		}
+	}
+	fclose(file);
+
 	result = result * 1024;
-	
-    return result;
+
+	return result;
 }
 
 int64_t getPhysicalMemoryUsedByProcess(){ //Note: this value is in KB!
-    FILE* file = fopen("/proc/self/status", "r");
-    int64_t result = -1;
-    char line[128];
+	FILE* file = fopen("/proc/self/status", "r");
+	int64_t result = -1;
+	char line[128];
 
-    while (fgets(line, 128, file) != NULL){
-        if (strncmp(line, "VmRSS:", 6) == 0){
-            result = parseLine(line);
-            break;
-        }
-    }
-    fclose(file);
-	
+	while (fgets(line, 128, file) != NULL){
+		if (strncmp(line, "VmRSS:", 6) == 0){
+			result = parseLine(line);
+			break;
+		}
+	}
+	fclose(file);
+
 	result = result * 1024;
-	
-    return result;
+
+	return result;
 }
 
 
 MemoryData getMemoryData() {
-	
+
 	struct sysinfo memInfo;
 
 	sysinfo (&memInfo);
@@ -220,10 +220,10 @@ MemoryData getMemoryData() {
 	int64_t virtualMemUsed = memInfo.totalram - memInfo.freeram;
 	virtualMemUsed += memInfo.totalswap - memInfo.freeswap;
 	virtualMemUsed *= memInfo.mem_unit;
-	
+
 	int64_t totalPhysMem = memInfo.totalram;
 	totalPhysMem *= memInfo.mem_unit;
-	
+
 	long long physMemUsed = memInfo.totalram - memInfo.freeram;
 	physMemUsed *= memInfo.mem_unit;
 
@@ -232,7 +232,7 @@ MemoryData getMemoryData() {
 
 
 	MemoryData data;
-	
+
 	static int64_t virtualUsedMax = 0;
 	static int64_t physicalUsedMax = 0;
 
@@ -304,47 +304,47 @@ static unsigned long long lastTotalUser, lastTotalUserLow, lastTotalSys, lastTot
 
 void init() {
 	numProcessors = std::thread::hardware_concurrency();
-	
+
 	FILE* file = fopen("/proc/stat", "r");
-    fscanf(file, "cpu %llu %llu %llu %llu", &lastTotalUser, &lastTotalUserLow, &lastTotalSys, &lastTotalIdle);
-    fclose(file);
+	fscanf(file, "cpu %llu %llu %llu %llu", &lastTotalUser, &lastTotalUserLow, &lastTotalSys, &lastTotalIdle);
+	fclose(file);
 
 	initialized = true;
 }
 
 double getCpuUsage(){
-    double percent;
-    FILE* file;
-    unsigned long long totalUser, totalUserLow, totalSys, totalIdle, total;
+	double percent;
+	FILE* file;
+	unsigned long long totalUser, totalUserLow, totalSys, totalIdle, total;
 
-    file = fopen("/proc/stat", "r");
-    fscanf(file, "cpu %llu %llu %llu %llu", &totalUser, &totalUserLow, &totalSys, &totalIdle);
-    fclose(file);
+	file = fopen("/proc/stat", "r");
+	fscanf(file, "cpu %llu %llu %llu %llu", &totalUser, &totalUserLow, &totalSys, &totalIdle);
+	fclose(file);
 
-    if (totalUser < lastTotalUser || totalUserLow < lastTotalUserLow ||
-        totalSys < lastTotalSys || totalIdle < lastTotalIdle){
-        //Overflow detection. Just skip this value.
-        percent = -1.0;
-    }else{
-        total = (totalUser - lastTotalUser) 
-			+ (totalUserLow - lastTotalUserLow) 
+	if (totalUser < lastTotalUser || totalUserLow < lastTotalUserLow ||
+		totalSys < lastTotalSys || totalIdle < lastTotalIdle){
+		//Overflow detection. Just skip this value.
+		percent = -1.0;
+	}else{
+		total = (totalUser - lastTotalUser)
+			+ (totalUserLow - lastTotalUserLow)
 			+ (totalSys - lastTotalSys);
-        percent = total;
-        total += (totalIdle - lastTotalIdle);
-        percent /= total;
-        percent *= 100;
-    }
+		percent = total;
+		total += (totalIdle - lastTotalIdle);
+		percent /= total;
+		percent *= 100;
+	}
 
-    lastTotalUser = totalUser;
-    lastTotalUserLow = totalUserLow;
-    lastTotalSys = totalSys;
-    lastTotalIdle = totalIdle;
+	lastTotalUser = totalUser;
+	lastTotalUserLow = totalUserLow;
+	lastTotalSys = totalSys;
+	lastTotalIdle = totalIdle;
 
-    return percent;
+	return percent;
 }
 
 CpuData getCpuData() {
-	
+
 	if (!initialized) {
 		init();
 	}

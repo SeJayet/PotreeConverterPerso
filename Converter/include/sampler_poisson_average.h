@@ -11,7 +11,7 @@
 struct SamplerPoissonAverage : public Sampler {
 
 	// subsample a local octree from bottom up
-	void sample(Node* node, Attributes attributes, double baseSpacing, 
+	void sample(Node* node, Attributes attributes, double baseSpacing,
 		function<void(Node*)> onNodeCompleted,
 		function<void(Node*)> onNodeDiscarded
 	) override {
@@ -403,7 +403,6 @@ struct SamplerPoissonAverage : public Sampler {
 
 									if (dd < squaredSpacing) {
 
-										
 										addCandidateToAverage(candidate, points[mainToSortMapping[point.mainIndex]]);
 
 									}
@@ -436,7 +435,6 @@ struct SamplerPoissonAverage : public Sampler {
 					auto isAccepted = acceptedFlags[i];
 					int64_t pointOffset = i * attributes.bytes;
 
-					
 					const Point& p = points[mainToSortMapping[j]];
 
 					uint16_t* rgbTarget = reinterpret_cast<uint16_t*>(child->points->data_u8 + i * attributes.bytes + offsetRGB);
@@ -473,9 +471,6 @@ struct SamplerPoissonAverage : public Sampler {
 					onNodeCompleted(child.get());
 				}
 			}
-
-			
-
 
 			node->points = accepted;
 			node->colors = averagedColors;
