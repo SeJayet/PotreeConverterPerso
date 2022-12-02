@@ -1,4 +1,3 @@
-
 #include "unsuck.hpp"
 
 #ifdef _WIN32
@@ -97,11 +96,8 @@ static HANDLE self;
 static bool initialized = false;
 
 void init() {
-	SYSTEM_INFO sysInfo;
 	FILETIME ftime, fsys, fuser;
 
-	GetSystemInfo(&sysInfo);
-	// numProcessors = sysInfo.dwNumberOfProcessors;
 	numProcessors = std::thread::hardware_concurrency();
 
 	GetSystemTimeAsFileTime(&ftime);

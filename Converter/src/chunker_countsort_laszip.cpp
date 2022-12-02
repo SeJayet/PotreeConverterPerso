@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <filesystem>
 #include <unordered_map>
@@ -43,9 +42,6 @@ namespace chunker_countsort_laszip {
 
 	auto numChunkerThreads = getCpuData().numProcessors;
 	auto numFlushThreads = getCpuData().numProcessors;
-
-	// auto numChunkerThreads = 1;
-	// auto numFlushThreads = 1;
 
 	int maxPointsPerChunk = 5'000'000;
 	int gridSize = 128;
@@ -137,8 +133,6 @@ namespace chunker_countsort_laszip {
 
 		const auto tStart = now();
 
-		//Vector3 size = max - min;
-
 		vector<std::atomic_int32_t> grid(gridSize * gridSize * gridSize);
 
 		struct Task{
@@ -161,8 +155,6 @@ namespace chunker_countsort_laszip {
 			const int64_t numBytes = task->numBytes;
 			const int64_t numToRead = task->numPoints;
 			const int64_t bpp = task->bpp;
-			//Vector3 scale = task->scale;
-			//Vector3 offset = task->offset;
 			Vector3 min = task->min;
 			Vector3 max = task->max;
 
@@ -170,8 +162,6 @@ namespace chunker_countsort_laszip {
 			ss << "counting " << fs::path(task->path).filename().string()
 				<< ", first point: " << formatNumber(task->firstPoint)
 				<< ", num points: " << formatNumber(task->numPoints);
-			// cout << ss.str();
-			// monitor->print("counter message", ss.str());
 
 			logger::INFO(ss.str());
 
@@ -269,7 +259,6 @@ namespace chunker_countsort_laszip {
 			state.pointsProcessed = pointsProcessed;
 			state.duration = now() - tStart;
 
-			//cout << ("end: " + formatNumber(dbgCurr)) << endl;
 		};
 
 		TaskPool<Task> pool(numChunkerThreads, processor);
@@ -277,12 +266,8 @@ namespace chunker_countsort_laszip {
 		const auto tStartTaskAssembly = now();
 
 		for (auto source : sources) {
-		//auto parallel = std::execution::par;
-		//for_each(parallel, paths.begin(), paths.end(), [&mtx, &sources](string path) {
-
 			laszip_POINTER laszip_reader;
 			laszip_header* header;
-			//laszip_point* point;
 			{
 				laszip_create(&laszip_reader);
 
@@ -323,8 +308,6 @@ namespace chunker_countsort_laszip {
 				task->numBytes = numBytes;
 				task->numPoints = numToRead;
 				task->bpp = header->point_data_record_length;
-				//task->scale = { header->x_scale_factor, header->y_scale_factor, header->z_scale_factor };
-				//task->offset = { header->x_offset, header->y_offset, header->z_offset };
 				task->min = min;
 				task->max = max;
 
@@ -922,8 +905,6 @@ namespace chunker_countsort_laszip {
 				target.max.y = std::max(target.max.y, source.max.y);
 				target.max.z = std::max(target.max.z, source.max.z);
 
-				// target.mask = target.mask | source.mask;
-
 				for(int j = 0; j < target.histogram.size(); j++){
 					target.histogram[j] = target.histogram[j] + source.histogram[j];
 				}
@@ -973,7 +954,6 @@ namespace chunker_countsort_laszip {
 				task->lut = &lut;
 				task->firstPoint = numRead;
 				task->path = source.path;
-				//task->scale = { header->x_scale_factor, header->y_scale_factor, header->z_scale_factor };
 				task->scale = outputAttributes.posScale;
 				task->offset = outputAttributes.posOffset;
 				task->min = min;
@@ -1207,7 +1187,9 @@ namespace chunker_countsort_laszip {
 
 		const int64_t tmp = state.pointsTotal / 20;
 		maxPointsPerChunk = std::min(tmp, int64_t(10'000'000));
-		// cout << "maxPointsPerChunk: " << maxPointsPerChunk << endl;
+#ifdef _DEBUG
+		cout << "maxPointsPerChunk: " << maxPointsPerChunk << endl;
+#endif // _DEBUG
 
 		if (state.pointsTotal < 100'000'000) {
 			gridSize = 128;

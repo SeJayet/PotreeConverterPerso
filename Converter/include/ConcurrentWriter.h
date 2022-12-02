@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <memory>
@@ -106,13 +105,8 @@ struct ConcurrentWriter {
 			vector<shared_ptr<Buffer>> work;
 
 			{
-				//auto tStart = now();
 				lock_guard<mutex> lockT(mtx_todo);
 				lock_guard<mutex> lockJ(mtx_join);
-				//auto duration = now() - tStart;
-				//if (duration > 0.01) {
-				//	cout << "long lock duration: " + to_string(duration) << endl;
-				//}
 
 				const bool nothingTodo = todo.size() == 0;
 
@@ -189,7 +183,6 @@ struct ConcurrentWriter {
 		{
 			lock_guard<mutex> lock(mtx_join);
 
-			//cout << "joinRequested" << endl;
 			joinRequested = true;
 		}
 
@@ -199,7 +192,9 @@ struct ConcurrentWriter {
 
 		threads.clear();
 
-		//cout << "writer joined \n";
+#ifdef _DEBUG
+		cout << "writer joined \n";
+#endif // _DEBUG
 
 	}
 

@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <execution>
@@ -126,11 +125,7 @@ struct SamplerPoisson : public Sampler {
 
 			const auto center = (node->min + node->max) * 0.5;
 
-			//int dbgChecks = -1;
-			//int dbgSumChecks = 0;
-			//int dbgMaxChecks = 0;
-
-			const auto checkAccept = [/*&dbgChecks, &dbgSumChecks,*/ &dbgNumAccepted, spacing, squaredSpacing, &squaredDistance, center /*, &numDistanceChecks*/](Point candidate) {
+			const auto checkAccept = [&dbgNumAccepted, spacing, squaredSpacing, &squaredDistance, center /*, &numDistanceChecks*/](Point candidate) {
 
 				const auto cx = candidate.x - center.x;
 				const auto cy = candidate.y - center.y;
@@ -145,15 +140,11 @@ struct SamplerPoisson : public Sampler {
 
 					auto& point = dbgAccepted[i];
 
-					//dbgChecks++;
-					//dbgSumChecks++;
-
 					// check distance to center
 					const auto px = point.x - center.x;
 					const auto py = point.y - center.y;
 					const auto pz = point.z - center.z;
 					const auto pdd = px * px + py * py + pz * pz;
-					//auto pd = sqrt(pdd);
 
 					// stop when differences to center between candidate and accepted exceeds the spacing
 					// any other previously accepted point will be even closer to the center.
@@ -194,21 +185,11 @@ struct SamplerPoisson : public Sampler {
 
 				// sort by distance to center
 				return add < bdd;
-
-				// sort by manhattan distance to center
-				//return (ax + ay + az) < (bx + by + bz);
-
-				// sort by z axis
-				//return a.z < b.z;
 			});
 
 			for (Point point : points) {
 
-				//dbgChecks = 0;
-
 				const bool isAccepted = checkAccept(point);
-
-				//dbgMaxChecks = std::max(dbgChecks, dbgMaxChecks);
 
 				if (isAccepted) {
 					dbgAccepted[dbgNumAccepted] = point;
@@ -218,29 +199,7 @@ struct SamplerPoisson : public Sampler {
 					numRejectedPerChild[point.childIndex]++;
 				}
 
-				//{ // debug: store sample time in GPS time attribute
-				//		auto child = node->children[point.childIndex];
-				//		auto data = child->points->data_u8;
-
-				//		//static double value = 0.0;
-
-
-				//		//value += 0.1;
-
-				//		//if(node->level() <= 2){
-				//			std::lock_guard<mutex> lock(mtx_debug);
-
-				//			debug += 0.01;
-				//			memcpy(data + point.pointIndex * attributes.bytes + 20, &debug, 8);
-				//		//}
-				//		//double value = now();
-
-				//		//point.pointIndex
-				//}
-
 				acceptedChildPointFlags[point.childIndex][point.pointIndex] = isAccepted ? 1 : 0;
-
-				//abc++;
 
 			}
 
@@ -292,12 +251,6 @@ struct SamplerPoisson : public Sampler {
 
 			node->points = accepted;
 			node->numPoints = numAccepted;
-
-			//{ // debug
-			//	auto avgChecks = dbgSumChecks / points.size();
-			//	string msg = "#checks: " + formatNumber(dbgSumChecks) + ", maxChecks: " + formatNumber(dbgMaxChecks) + ", avgChecks: " + formatNumber(avgChecks) + "\n";
-			//	cout << msg;
-			//}
 
 			return true;
 		});

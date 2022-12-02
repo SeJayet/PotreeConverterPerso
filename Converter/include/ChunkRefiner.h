@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <string>
@@ -196,16 +195,6 @@ namespace ChunkRefiner {
 
 		pool.waitTillEmpty();
 		pool.close();
-
-
-
-		// auto numPoints = points->size / bpp;
-
-		// for(int64_t i = 0; i < numPoints; i++){
-		// 	auto index = gridIndexOf(i);
-		// 	counters[index]++;
-		// }
-
 	}
 
 	void refine(string targetDir, State& state) {

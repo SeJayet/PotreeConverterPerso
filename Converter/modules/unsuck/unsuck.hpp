@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <string>
@@ -349,25 +348,11 @@ inline string readTextFile(string path) {
 	return str;
 }
 
-
-// taken from: https://stackoverflow.com/questions/18816126/c-read-the-whole-file-in-buffer
-// inline vector<char> readBinaryFile(string path) {
-// 	std::ifstream file(path, ios::binary | ios::ate);
-// 	std::streamsize size = file.tellg();
-// 	file.seekg(0, ios::beg);
-
-// 	std::vector<char> buffer(size);
-// 	file.read(buffer.data(), size);
-
-// 	return buffer;
-// }
-
 inline shared_ptr<Buffer> readBinaryFile(string path) {
 
 	auto file = fopen(path.c_str(), "rb");
 	auto size = fs::file_size(path);
 
-	//vector<uint8_t> buffer(size);
 	auto buffer = make_shared<Buffer>(size);
 
 	fread(buffer->data, 1, size, file);
@@ -376,49 +361,7 @@ inline shared_ptr<Buffer> readBinaryFile(string path) {
 	return buffer;
 }
 
-//inline vector<uint8_t> readBinaryFile(string path) {
-//
-//	auto file = fopen(path.c_str(), "rb");
-//	auto size = fs::file_size(path);
-//
-//	vector<uint8_t> buffer(size);
-//
-//	fread(buffer.data(), 1, size, file);
-//	fclose(file);
-//
-//	return buffer;
-//}
-
-//// taken from: https://stackoverflow.com/questions/18816126/c-read-the-whole-file-in-buffer
-//inline vector<uint8_t> readBinaryFile(string path, uint64_t start, uint64_t size) {
-//	ifstream file(path, ios::binary);
-//	//streamsize size = file.tellg();
-//
-//	auto totalSize = fs::file_size(path);
-//
-//	if (start >= totalSize) {
-//		return vector<uint8_t>();
-//	}if (start + size > totalSize) {
-//		auto clampedSize = totalSize - start;
-//
-//		vector<uint8_t> buffer(clampedSize);
-//		file.seekg(start, ios::beg);
-//		file.read(reinterpret_cast<char*>(buffer.data()), clampedSize);
-//
-//		return buffer;
-//	} else {
-//		vector<uint8_t> buffer(size);
-//		file.seekg(start, ios::beg);
-//		file.read(reinterpret_cast<char*>(buffer.data()), size);
-//
-//		return buffer;
-//	}
-//}
-
 inline vector<uint8_t> readBinaryFile(string path, uint64_t start, uint64_t size) {
-
-	//ifstream file(path, ios::binary);
-
 	// the fopen version seems to be quite a bit faster than ifstream
 	auto file = fopen(path.c_str(), "rb");
 
@@ -431,8 +374,6 @@ inline vector<uint8_t> readBinaryFile(string path, uint64_t start, uint64_t size
 		const auto clampedSize = totalSize - start;
 
 		vector<uint8_t> buffer(clampedSize);
-		//file.seekg(start, ios::beg);
-		//file.read(reinterpret_cast<char*>(buffer.data()), clampedSize);
 		fseek_64_all_platforms(file, start, SEEK_SET);
 		fread(buffer.data(), 1, clampedSize, file);
 		fclose(file);
@@ -440,8 +381,6 @@ inline vector<uint8_t> readBinaryFile(string path, uint64_t start, uint64_t size
 		return buffer;
 	} else {
 		vector<uint8_t> buffer(size);
-		//file.seekg(start, ios::beg);
-		//file.read(reinterpret_cast<char*>(buffer.data()), size);
 		fseek_64_all_platforms(file, start, SEEK_SET);
 		fread(buffer.data(), 1, size, file);
 		fclose(file);
@@ -557,7 +496,6 @@ inline void logDebug(string message) {
 
 template<typename T>
 T read(vector<uint8_t>& buffer, int offset) {
-	//T value = reinterpret_cast<T*>(buffer.data() + offset)[0];
 	T value;
 
 	memcpy(&value, buffer.data() + offset, sizeof(T));

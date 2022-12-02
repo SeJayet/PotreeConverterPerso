@@ -84,11 +84,6 @@ namespace indexer{
 			const auto jsScale = jsAttribute["scale"];
 			const auto jsOffset = jsAttribute["offset"];
 
-			// int64_t mask = 0;
-			// if(jsAttribute.contains("mask")){
-			// 	mask = jsAttribute["mask"];
-			// }
-
 			vector<int64_t> histogram(256, 0);
 			if(jsAttribute.contains("histogram")){
 				auto jsHistogram = jsAttribute["histogram"];
@@ -100,7 +95,6 @@ namespace indexer{
 
 			Attribute attribute(name, size, numElements, elementSize, type);
 			attribute.description = description;
-			// attribute.mask = mask;
 			attribute.histogram = histogram;
 
 			if (numElements >= 1) {
@@ -268,7 +262,9 @@ namespace indexer{
 
 		vector<CRNode> tasks;
 		cr_root->traverse([&tasks](CRNode* node){
-			// cout << node->name << ", #points: " << node->numPoints << ", #fcrs: " << node->fcrs.size() << endl;
+#ifdef _DEBUG
+			cout << node->name << ", #points: " << node->numPoints << ", #fcrs: " << node->fcrs.size() << endl;
+#endif // _DEBUG
 
 			if(node->fcrs.size() > 0){
 				CRNode crnode = *node;
@@ -591,19 +587,21 @@ Hierarchy Indexer::createHierarchy(string path) {
 
 	auto chunks = createHierarchyChunks(root.get(), hierarchyStepSize);
 
-	// string dbgChunksPath = path + "/../dbg_chunks";
-	// fs::create_directories(dbgChunksPath);
-	// for(auto& chunk : chunks){
+#ifdef _DEBUG
+	string dbgChunksPath = path + "/../dbg_chunks";
+	fs::create_directories(dbgChunksPath);
+	for(auto& chunk : chunks){
 
-	// 	stringstream ss;
+		stringstream ss;
 
-	// 	for(auto node : chunk.nodes){
-	// 		ss << node->name << endl;
-	// 	}
+		for(auto node : chunk.nodes){
+			ss << node->name << endl;
+		}
 
 
-	// 	writeFile(dbgChunksPath + "/" + chunk.name + ".txt", ss.str());
-	// }
+		writeFile(dbgChunksPath + "/" + chunk.name + ".txt", ss.str());
+	}
+#endif // _DEBUG
 
 	unordered_map<string, int> chunkPointers;
 	vector<int64_t> chunkByteOffsets(chunks.size(), 0);
@@ -845,8 +843,6 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 	const auto scale = attributes.posScale;
 	const auto offset = attributes.posOffset;
 
-	//vector<int32_t> dbg(pointBuffer->data_i32, pointBuffer->data_i32 + 10);
-
 	const auto gridIndexOf = [&points, bpp, scale, offset, min, size, counterGridSize](int64_t pointIndex) {
 
 		const int64_t pointOffset = pointIndex * bpp;
@@ -1072,7 +1068,9 @@ void buildHierarchy(Indexer* indexer, Node* node, shared_ptr<Buffer> points, int
 
 				}
 
-				//cout << "#distinct: " << distinct.size() << endl;
+#ifdef _DEBUG
+				cout << "#distinct: " << distinct.size() << endl;
+#endif // _DEBUG
 
 				stringstream msg;
 				msg << "Too many duplicate points were encountered. #points: " << subject->numPoints;
@@ -1130,7 +1128,6 @@ SoA toStructOfArrays(Node* node, Attributes attributes) {
 	for (Attribute attribute : attributes.list) {
 
 		int64_t bytes = attribute.size * numPoints;
-		//auto buffer = make_shared<Buffer>(bytes);
 		auto attributeOffset = attributes.getOffset(attribute.name);
 
 		if (attribute.name == "rgb") {
@@ -1205,37 +1202,6 @@ SoA toStructOfArrays(Node* node, Attributes attributes) {
 				const auto mc_l = mortonEncode_magicbits(mx_l, my_l, mz_l);
 				const auto mc_h = mortonEncode_magicbits(mx_h, my_h, mz_h);
 
-				//{ // try decode and compare
-
-				//	uint32_t x_decoded = 0;
-				//	uint32_t y_decoded = 0;
-				//	uint32_t z_decoded = 0;
-
-				//	for (int i = 0; i < 21; i++) {
-
-				//		uint64_t mask = (mc_l >> (3 * i)) & 0b111;
-
-				//		x_decoded = x_decoded | (((mask >> 0) & 0b001) << i);
-				//		y_decoded = y_decoded | (((mask >> 1) & 0b001) << i);
-				//		z_decoded = z_decoded | (((mask >> 2) & 0b001) << i);
-
-
-				//	}
-
-				//	bool okayX = x_decoded == mx_l;
-				//	bool okayY = y_decoded == my_l;
-				//	bool okayZ = z_decoded == mz_l;
-
-				//	if (!okayX || !okayY || !okayZ) {
-
-				//		cout << "could not revert morton code!!!" << endl;
-
-				//		exit(123);
-				//	}
-
-				//}
-
-
 				MortonCode mc;
 				mc.lower = mc_l;
 				mc.upper = mc_h;
@@ -1279,8 +1245,6 @@ SoA toStructOfArrays(Node* node, Attributes attributes) {
 			buffers[attribute.name] = buffer;
 		}
 
-		//vector<uint8_t> dbg1(buffer->data_u8, buffer->data_u8 + buffer->size);
-
 	}
 
 	SoA soa;
@@ -1292,12 +1256,13 @@ SoA toStructOfArrays(Node* node, Attributes attributes) {
 
 
 
-
-//static int64_t totalUncompressed = 0;
-//static int64_t totalCompressed = 0;
-//static unordered_map<string, int64_t> uncompressedCounters;
-//static unordered_map<string, int64_t> compressedCounters;
-//static mutex mtx_dbg_compress;
+#ifdef _DEBUG
+static int64_t totalUncompressed = 0;
+static int64_t totalCompressed = 0;
+static unordered_map<string, int64_t> uncompressedCounters;
+static unordered_map<string, int64_t> compressedCounters;
+static mutex mtx_dbg_compress;
+#endif // _DEBUG
 
 shared_ptr<Buffer> compress(Node* node, Attributes attributes) {
 
@@ -1389,37 +1354,40 @@ shared_ptr<Buffer> compress(Node* node, Attributes attributes) {
 		out = make_shared<Buffer>(encoded_size);
 		memcpy(out->data, encoded_buffer, encoded_size);
 
-		//{ // DEBUG
-		//	lock_guard<mutex> lock(mtx_dbg_compress);
+#ifdef _DEBUG
+		{
+			lock_guard<mutex> lock(mtx_dbg_compress);
 
-		//	totalUncompressed += input_size;
-		//	totalCompressed += encoded_size;
-		//}
+			totalUncompressed += input_size;
+			totalCompressed += encoded_size;
+		}
+#endif // _DEBUG
 	}
 
-	//{
-	//	lock_guard<mutex> lock(mtx_dbg_compress);
+#ifdef _DEBUG
+	{
+		lock_guard<mutex> lock(mtx_dbg_compress);
 
-	//	static int i = 0;
-	//	if ((i % 100) == 0) {
+		static int i = 0;
+		if ((i % 100) == 0) {
 
-	//		stringstream ss;
-	//		ss << "===================================================" << endl;
+			stringstream ss;
+			ss << "===================================================" << endl;
 
-	//		{
-	//			double ratio = double(totalCompressed) / double(totalUncompressed);
+			{
+				double ratio = double(totalCompressed) / double(totalUncompressed);
 
-	//			ss << "[total] " << formatNumber(totalUncompressed) << " > " << formatNumber(totalCompressed) << " - " << formatNumber(100.0 * ratio, 1) << endl;
-	//			cout << ss.str();
-	//		}
+				ss << "[total] " << formatNumber(totalUncompressed) << " > " << formatNumber(totalCompressed) << " - " << formatNumber(100.0 * ratio, 1) << endl;
+				cout << ss.str();
+			}
 
-	//		cout << ss.str();
+			cout << ss.str();
 
-	//	}
-	//	i++;
+		}
+		i++;
 
-
-	//}
+	}
+#endif // _DEBUG
 
 	return out;
 }
@@ -1743,11 +1711,6 @@ void doIndexing(string targetDir, State& state, Options& options, Sampler& sampl
 	indexer.writer->closeAndWait();
 
 	printElapsedTime("flushing", tStart);
-
-
-	//string hierarchyPath = targetDir + "/hierarchy.bin";
-	//Hierarchy hierarchy = indexer.createHierarchy(hierarchyPath);
-	//writeBinaryFile(hierarchyPath, hierarchy.buffer);
 
 	indexer.hierarchyFlusher->flush(hierarchyStepSize);
 

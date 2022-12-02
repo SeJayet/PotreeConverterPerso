@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <execution>
@@ -50,27 +49,9 @@ inline ScaleOffset computeScaleOffset(Vector3 min, Vector3 max, Vector3 targetSc
 	scale.y = std::max(scale.y, min_scale_y);
 	scale.z = std::max(scale.z, min_scale_z);
 
-	//auto round = [](double number, double step) {
-	//	double residue = fmod(number, step);
-	//	double n = (step - abs(residue)) * (residue < 0 ? -1.0 : 1.0);
-
-	//	return number + n;
-	//};
-
-	//Vector3 roundedOffset = {
-	//	round(offset.x, scale.x),
-	//	round(offset.y, scale.y),
-	//	round(offset.z, scale.z),
-	//};
-
-	//cout << "offset: " << offset.toString() << endl;
-	//cout << "roundedOffset: " << roundedOffset.toString() << endl;
-
 	ScaleOffset scaleOffset;
 	scaleOffset.scale = scale;
 	scaleOffset.offset = offset;
-	//scaleOffset.offset = roundedOffset;
-	//scaleOffset.offset = { 0.0, 0.0, 0.0 };
 
 	return scaleOffset;
 }
@@ -194,7 +175,6 @@ inline Attributes computeOutputAttributes(vector<Source>& sources, vector<string
 	// TODO: a bit wasteful to iterate over source files and load headers twice
 
 	Vector3 scaleMin = { Infinity, Infinity, Infinity };
-	//Vector3 offset = { Infinity, Infinity, Infinity};
 	Vector3 min = { Infinity, Infinity, Infinity };
 	Vector3 max = { -Infinity, -Infinity, -Infinity };
 	Vector3 scale, offset;
@@ -277,38 +257,6 @@ inline Attributes computeOutputAttributes(vector<Source>& sources, vector<string
 	attributes.posScale = scale;
 	attributes.posOffset = offset;
 
-
-
-	// { // print infos
-
-	// 	cout << endl << "output attributes: " << endl;
-
-	// 	int c0 = 30;
-	// 	int c1 = 10;
-	// 	int c2 = 8;
-	// 	int ct = c0 + c1 + c2;
-
-	// 	cout << rightPad("name", c0) << leftPad("offset", c1) << leftPad("size", c2) << endl;
-	// 	cout << string(ct, '=') << endl;
-
-	// 	int offset = 0;
-	// 	for (auto attribute : attributes.list) {
-	// 		cout << rightPad(attribute.name, c0)
-	// 			<< leftPad(formatNumber(offset), c1)
-	// 			<< leftPad(formatNumber(attribute.size), c2)
-	// 			<< endl;
-
-	// 		offset += attribute.size;
-	// 	}
-	// 	cout << string(ct, '=') << endl;
-
-	// 	//cout << "bytes per point: " << attributes.bytes << endl;
-	// 	cout << leftPad(formatNumber(attributes.bytes), ct) << endl;
-	// 	cout << string(ct, '=') << endl;
-
-	// 	//exit(1234);
-	// }
-
 	return attributes;
 }
 
@@ -337,7 +285,9 @@ inline string toString(Attributes& attributes){
 	}
 	ss << string(ct, '=') << endl;
 
-	//cout << "bytes per point: " << attributes.bytes << endl;
+#ifdef _DEBUG
+	cout << "bytes per point: " << attributes.bytes << endl;
+#endif // _DEBUG
 	ss << leftPad(formatNumber(attributes.bytes), ct) << endl;
 	ss << string(ct, '=') << endl;
 

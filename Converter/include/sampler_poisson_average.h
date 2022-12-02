@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <execution>
@@ -101,26 +100,6 @@ struct SamplerPoissonAverage : public Sampler {
 				const bool childIsLeaf = child->isLeaf();
 
 				const int offsetRGB = attributes.getOffset("rgb");
-				//if (child->isLeaf()) {
-
-				//	vector<CumulativeColor> colors;
-				//	colors.reserve(node->numPoints);
-
-				//	for (int i = 0; i < node->numPoints; i++) {
-				//		CumulativeColor color;
-
-				//		size_t offsetPoint = i * attributes.bytes;
-				//		color.r = reinterpret_cast<uint16_t*>(node->points->data_u8 + offsetPoint + offsetRGB)[0];
-				//		color.g = reinterpret_cast<uint16_t*>(node->points->data_u8 + offsetPoint + offsetRGB)[1];
-				//		color.b = reinterpret_cast<uint16_t*>(node->points->data_u8 + offsetPoint + offsetRGB)[2];
-				//		color.w = 1;
-
-				//		colors.push_back(color);
-				//	}
-
-				//	node->colors = colors;
-				//}
-
 
 				vector<int8_t> acceptedFlags(child->numPoints, 0);
 				acceptedChildPointFlags.push_back(acceptedFlags);
@@ -134,11 +113,6 @@ struct SamplerPoissonAverage : public Sampler {
 					const double z = (xyz[2] * scale.z) + offset.z;
 
 					Point point = { x, y, z, i, childIndex };
-
-					/*point.r = child->colors[i].r;
-					point.g = child->colors[i].g;
-					point.b = child->colors[i].b;
-					point.w = child->colors[i].w;*/
 
 					const size_t offsetPoint = i * attributes.bytes;
 					point.r = reinterpret_cast<uint16_t*>(child->points->data_u8 + offsetPoint + offsetRGB)[0];
@@ -156,9 +130,6 @@ struct SamplerPoissonAverage : public Sampler {
 			}
 
 			const unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-
-			//thread_local vector<Point> dbgAccepted(1'000'000);
-			//int dbgNumAccepted = 0;
 			const double spacing = baseSpacing / pow(2.0, node->level());
 			const double squaredSpacing = spacing * spacing;
 
@@ -174,14 +145,10 @@ struct SamplerPoissonAverage : public Sampler {
 
 			const auto center = (node->min + node->max) * 0.5;
 
-			//int dbgChecks = -1;
-			//int dbgSumChecks = 0;
-			//int dbgMaxChecks = 0;
-
 			constexpr double acceptGridSize = 16;
 			vector<vector<Point>> gridAccepted(acceptGridSize * acceptGridSize * acceptGridSize);
 
-			const auto checkAccept = [/*&dbgChecks, &dbgSumChecks, &dbgNumAccepted,*/ spacing, squaredSpacing, &squaredDistance, center, min, max, size, &gridAccepted, acceptGridSize](Point candidate) {
+			const auto checkAccept = [spacing, squaredSpacing, &squaredDistance, center, min, max, size, &gridAccepted, acceptGridSize](Point candidate) {
 
 				const double dx = acceptGridSize * (candidate.x - min.x) / size.x;
 				const double dy = acceptGridSize * (candidate.y - min.y) / size.y;
@@ -229,53 +196,6 @@ struct SamplerPoissonAverage : public Sampler {
 				const int indexCurr = ix + iy * acceptGridSize + iz * acceptGridSize * acceptGridSize;
 				gridAccepted[indexCurr].push_back(candidate);
 
-				//=====================================================
-				// outside-in distance checking as described in paper
-				// superseded by distance checking in a grid-neighbourhood
-				//=====================================================
-				//auto cx = candidate.x - center.x;
-				//auto cy = candidate.y - center.y;
-				//auto cz = candidate.z - center.z;
-				//auto cdd = cx * cx + cy * cy + cz * cz;
-				//auto cd = sqrt(cdd);
-				//auto limit = (cd - spacing);
-				//auto limitSquared = limit * limit;
-
-				//int j = 0;
-				//for (int i = dbgNumAccepted - 1; i >= 0; i--) {
-
-				//	auto& point = dbgAccepted[i];
-
-				//	//dbgChecks++;
-				//	//dbgSumChecks++;
-
-				//	// check distance to center
-				//	auto px = point.x - center.x;
-				//	auto py = point.y - center.y;
-				//	auto pz = point.z - center.z;
-				//	auto pdd = px * px + py * py + pz * pz;
-				//	//auto pd = sqrt(pdd);
-
-				//	// stop when differences to center between candidate and accepted exceeds the spacing
-				//	// any other previously accepted point will be even closer to the center.
-				//	if (pdd < limitSquared) {
-				//		return true;
-				//	}
-
-				//	double dd = squaredDistance(point, candidate);
-
-				//	if (dd < squaredSpacing) {
-				//		return false;
-				//	}
-
-				//	j++;
-
-				//	// also put a limit at x distance checks
-				//	if (j > 10'000) {
-				//		return true;
-				//	}
-				//}
-
 				return true;
 
 			};
@@ -295,12 +215,6 @@ struct SamplerPoissonAverage : public Sampler {
 
 				// sort by distance to center
 				return add < bdd;
-
-				// sort by manhattan distance to center
-				//return (ax + ay + az) < (bx + by + bz);
-
-				// sort by z axis
-				//return a.z < b.z;
 			});
 			vector<int32_t> mainToSortMapping(points.size());
 			for (int i = 0; i < points.size(); i++) {
@@ -308,49 +222,17 @@ struct SamplerPoissonAverage : public Sampler {
 			}
 
 
-			//int abc = 0;
 			for (const Point& point : points) {
-
-				//dbgChecks = 0;
-
-				//point.mainIndex = abc;
-				//abc++;
 
 				const bool isAccepted = checkAccept(point);
 
-				//dbgMaxChecks = std::max(dbgChecks, dbgMaxChecks);
-
 				if (isAccepted) {
-					//dbgAccepted[numAccepted] = point;
-					//dbgNumAccepted++;
 					numAccepted++;
 				} else {
 					numRejectedPerChild[point.childIndex]++;
 				}
 
-				//{ // debug: store sample time in GPS time attribute
-				//		auto child = node->children[point.childIndex];
-				//		auto data = child->points->data_u8;
-
-				//		//static double value = 0.0;
-
-
-				//		//value += 0.1;
-
-				//		//if(node->level() <= 2){
-				//			std::lock_guard<mutex> lock(mtx_debug);
-
-				//			debug += 0.01;
-				//			memcpy(data + point.pointIndex * attributes.bytes + 20, &debug, 8);
-				//		//}
-				//		//double value = now();
-
-				//		//point.pointIndex
-				//}
-
 				acceptedChildPointFlags[point.childIndex][point.pointIndex] = isAccepted ? 1 : 0;
-
-				//abc++;
 
 			}
 
@@ -464,9 +346,6 @@ struct SamplerPoissonAverage : public Sampler {
 					node->children[childIndex] = nullptr;
 				} if (numRejected > 0) {
 					child->points = rejected;
-					//child->numPoints = numRejected;
-					//child->colors.clear();
-					//child->colors.shrink_to_fit();
 
 					onNodeCompleted(child.get());
 				}
@@ -475,12 +354,6 @@ struct SamplerPoissonAverage : public Sampler {
 			node->points = accepted;
 			node->colors = averagedColors;
 			node->numPoints = numAccepted;
-
-			//{ // debug
-			//	auto avgChecks = dbgSumChecks / points.size();
-			//	string msg = "#checks: " + formatNumber(dbgSumChecks) + ", maxChecks: " + formatNumber(dbgMaxChecks) + ", avgChecks: " + formatNumber(avgChecks) + "\n";
-			//	cout << msg;
-			//}
 
 			return true;
 		});

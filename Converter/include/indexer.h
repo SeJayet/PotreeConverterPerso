@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <string>
@@ -42,8 +41,6 @@ namespace fs = std::filesystem;
 
 namespace indexer{
 
-	//constexpr int numSampleThreads = 10;
-	//constexpr int numFlushThreads = 36;
 	constexpr int maxPointsPerChunk = 10'000;
 
 	inline int numSampleThreads() {
@@ -98,8 +95,6 @@ namespace indexer{
 		std::condition_variable cvClose;
 
 		fstream fsOctree;
-
-		//thread tWrite;
 
 		mutex mtx;
 
@@ -191,16 +186,6 @@ namespace indexer{
 			}
 
 			fs::create_directories(path);
-
-			// this structure, but guaranteed to be packed
-			// struct Record{                 size   offset
-			// 	uint8_t name[31];               31        0
-			// 	uint32_t numPoints;              4       31
-			// 	int64_t byteOffset;              8       35
-			// 	int32_t byteSize;                4       43
-			// 	uint8_t end = '\n';              1       47
-			// };                              ===
-			//                                  48
 
 			for(auto [key, groupedNodes] : groups){
 
@@ -321,7 +306,6 @@ namespace indexer{
 		mutex mtx_depth;
 		int64_t octreeDepth = 0;
 
-		//shared_ptr<TaskPool<FlushTask>> flushPool;
 		atomic_int64_t bytesInMemory = 0;
 		atomic_int64_t bytesToWrite = 0;
 		atomic_int64_t bytesWritten = 0;
