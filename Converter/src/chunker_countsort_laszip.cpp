@@ -15,7 +15,7 @@
 #include "Vector3.h"
 #include "ConcurrentWriter.h"
 
-#include "json/json.hpp"
+#include "nlohmann/json.hpp"
 #include "laszip/laszip_api.h"
 #include "LasLoader/LasLoader.h"
 #include "PotreeConverter.h"

@@ -15,7 +15,7 @@
 #include <mutex>
 #include <condition_variable>
 
-#include "json/json.hpp"
+#include "nlohmann/json.hpp"
 
 #include "Attributes.h"
 #include "converter_utils.h"
