@@ -13,6 +13,7 @@ set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
 ################################################################################
 
 find_package(nlohmann_json CONFIG REQUIRED)
+target_link_libraries(main PRIVATE nlohmann_json::nlohmann_json)
 
 ################################################################################
 # Check for laszip
@@ -20,6 +21,12 @@ find_package(nlohmann_json CONFIG REQUIRED)
 
 find_package(laszip CONFIG REQUIRED)
 
+################################################################################
+# Check for brotli
+################################################################################
+
+find_package(unofficial-brotli CONFIG REQUIRED)
+target_link_libraries(main PRIVATE unofficial::brotli::brotlidec unofficial::brotli::brotlienc unofficial::brotli::brotlicommon)
 
 #message(${PROJECT_SOURCE_DIR})
 
@@ -52,12 +59,6 @@ add_executable(PotreeConverter
 	${HEADER_FILES}
 )
 
-set(BROTLI_DIR "${PROJECT_SOURCE_DIR}/Converter/libs/brotli")
-add_subdirectory(${BROTLI_DIR})
-target_link_libraries(PotreeConverter brotlienc-static)
-target_link_libraries(PotreeConverter brotlidec-static)
-
-
 target_include_directories(PotreeConverter PRIVATE "./Converter/include")
 target_include_directories(PotreeConverter PRIVATE "./Converter/modules")
 target_include_directories(PotreeConverter PRIVATE "./Converter/libs")
@@ -77,12 +78,6 @@ endif (UNIX)
 ###############################################
 # COPY LICENSE FILES TO BINARY DIRECTORY
 ###############################################
-add_custom_command(
-	TARGET PotreeConverter POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -E copy
-		${BROTLI_DIR}/LICENSE
-		$<TARGET_FILE_DIR:${PROJECT_NAME}>/licenses/license_brotli.txt)
-
 add_custom_command(
 	TARGET PotreeConverter POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy
