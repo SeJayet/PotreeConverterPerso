@@ -43,10 +43,6 @@ namespace indexer{
 
 	constexpr int maxPointsPerChunk = 10'000;
 
-	inline int numSampleThreads() {
-		return getCpuData().numProcessors;
-	}
-
 	struct Hierarchy {
 		int64_t stepSize = 0;
 		vector<uint8_t> buffer;

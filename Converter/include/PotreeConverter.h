@@ -206,7 +206,7 @@ inline Attributes computeOutputAttributes(const vector<Source>& sources, vector<
 		offset = scaleOffset.offset;
 
 		if (scaleMin.x != scale.x || scaleMin.y != scale.y || scaleMin.z != scale.z) {
-			GENERATE_WARN_MESSAGE << "scale/offset/bounding box were adjusted. "
+			cout << "WARNING: " << "scale/offset/bounding box were adjusted. "
 				<< "new scale: " << scale.toString() << ", "
 				<< "new offset: " << offset.toString() << endl;
 		}

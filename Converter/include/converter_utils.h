@@ -135,26 +135,6 @@ inline BoundingBox childBoundingBoxOf(Vector3 min, Vector3 max, int index) {
 	return box;
 }
 
-inline void dbgPrint_ts_later(string message, bool now = false) {
-
-	static vector<string> data;
-
-	static mutex mtx;
-	lock_guard<mutex> lock(mtx);
-
-	data.push_back(message);
-
-	if (now) {
-		for (auto& message : data) {
-			cout << message << endl;
-		}
-
-		data.clear();
-	}
-
-}
-
-
 struct Options {
 	vector<string> source;
 	string encoding = "DEFAULT"; // "BROTLI", "UNCOMPRESSED"

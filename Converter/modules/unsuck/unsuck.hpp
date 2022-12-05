@@ -66,8 +66,6 @@ MemoryData getMemoryData();
 
 CpuData getCpuData();
 
-void printMemoryReport();
-
 void launchMemoryChecker(double checkInterval);
 
 class punct_facet : public std::numpunct<char> {
@@ -359,34 +357,6 @@ inline shared_ptr<Buffer> readBinaryFile(string path) {
 	return buffer;
 }
 
-inline vector<uint8_t> readBinaryFile(string path, uint64_t start, uint64_t size) {
-	// the fopen version seems to be quite a bit faster than ifstream
-	auto file = fopen(path.c_str(), "rb");
-
-	auto totalSize = fs::file_size(path);
-
-	if (start >= totalSize) {
-		return vector<uint8_t>();
-	}
-	if (start + size > totalSize) {
-		const auto clampedSize = totalSize - start;
-
-		vector<uint8_t> buffer(clampedSize);
-		fseek_64_all_platforms(file, start, SEEK_SET);
-		fread(buffer.data(), 1, clampedSize, file);
-		fclose(file);
-
-		return buffer;
-	} else {
-		vector<uint8_t> buffer(size);
-		fseek_64_all_platforms(file, start, SEEK_SET);
-		fread(buffer.data(), 1, size, file);
-		fclose(file);
-
-		return buffer;
-	}
-}
-
 inline void readBinaryFile(string path, uint64_t start, uint64_t size, void* target) {
 	auto file = fopen(path.c_str(), "rb");
 
@@ -406,48 +376,6 @@ inline void readBinaryFile(string path, uint64_t start, uint64_t size, void* tar
 		fread(target, 1, size, file);
 		fclose(file);
 	}
-}
-
-// writing smaller batches of 1-4MB seems to be faster sometimes?!?
-// it's not very significant, though. ~0.94s instead of 0.96s.
-template<typename T>
-inline void writeBinaryFile(string path, vector<T>& data) {
-	std::ios_base::sync_with_stdio(false);
-	auto of = fstream(path, ios::out | ios::binary);
-
-	int64_t remaining = data.size() * sizeof(T);
-	int64_t offset = 0;
-
-	while (remaining > 0) {
-		constexpr int64_t mb4 = int64_t(4 * 1024 * 1024);
-		const int batchSize = std::min(remaining, mb4);
-		of.write(reinterpret_cast<char*>(data.data()) + offset, batchSize);
-
-		offset += batchSize;
-		remaining -= batchSize;
-	}
-
-	of.close();
-}
-
-inline void writeBinaryFile(string path, Buffer& data) {
-	std::ios_base::sync_with_stdio(false);
-	auto of = fstream(path, ios::out | ios::binary);
-
-	int64_t remaining = data.size;
-	int64_t offset = 0;
-
-	while (remaining > 0) {
-		constexpr int64_t mb4 = int64_t(4 * 1024 * 1024);
-		const int batchSize = std::min(remaining, mb4);
-		of.write(reinterpret_cast<char*>(data.data) + offset, batchSize);
-
-		offset += batchSize;
-		remaining -= batchSize;
-	}
-
-
-	of.close();
 }
 
 // taken from: https://stackoverflow.com/questions/2602013/read-whole-ascii-file-into-c-stdstring/2602060
@@ -477,21 +405,6 @@ inline void writeFile(string path, string text) {
 }
 
 
-
-inline void logDebug(string message) {
-#if defined(_DEBUG)
-
-	const auto id = std::this_thread::get_id();
-
-	stringstream ss;
-	ss << "[" << id << "]: " << message << "\n";
-
-	cout << ss.str();
-#endif
-}
-
-
-
 template<typename T>
 T read(vector<uint8_t>& buffer, int offset) {
 	T value;
@@ -519,8 +432,4 @@ inline string rightPad(string in, int64_t length, const char character = ' ') {
 
 	return result;
 }
-
-
-#define GENERATE_ERROR_MESSAGE cout << "ERROR(" << __FILE__ << ":" << __LINE__ << "): "
-#define GENERATE_WARN_MESSAGE cout << "WARNING: "
 

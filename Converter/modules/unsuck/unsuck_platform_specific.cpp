@@ -47,22 +47,6 @@ MemoryData getMemoryData() {
 
 
 #ifdef _DEBUG
-void printMemoryReport() {
-
-	const auto memoryData = getMemoryData();
-	const double vm = double(memoryData.virtual_usedByProcess) / (1024.0 * 1024.0 * 1024.0);
-	const double pm = double(memoryData.physical_usedByProcess) / (1024.0 * 1024.0 * 1024.0);
-
-	stringstream ss;
-	ss << "memory usage: "
-		<< "virtual: " << formatNumber(vm, 1) << " GB, "
-		<< "physical: " << formatNumber(pm, 1) << " GB"
-		<< endl;
-
-	cout << ss.str();
-
-}
-
 void launchMemoryChecker(double checkInterval) {
 
 	const auto interval = std::chrono::milliseconds(int64_t(checkInterval * 1000));
@@ -246,22 +230,6 @@ MemoryData getMemoryData() {
 
 
 #ifdef _DEBUG
-void printMemoryReport() {
-
-	auto memoryData = getMemoryData();
-	double vm = double(memoryData.virtual_usedByProcess) / (1024.0 * 1024.0 * 1024.0);
-	double pm = double(memoryData.physical_usedByProcess) / (1024.0 * 1024.0 * 1024.0);
-
-	stringstream ss;
-	ss << "memory usage: "
-		<< "virtual: " << formatNumber(vm, 1) << " GB, "
-		<< "physical: " << formatNumber(pm, 1) << " GB"
-		<< endl;
-
-	cout << ss.str();
-
-}
-
 void launchMemoryChecker(double checkInterval) {
 
 	auto interval = std::chrono::milliseconds(int64_t(checkInterval * 1000));

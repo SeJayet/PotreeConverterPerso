@@ -8,7 +8,6 @@
 #include "Attributes.h"
 #include "logger.h"
 #include "PotreeConverter.h"
-#include "DbgWriter.h"
 #include "brotli/encode.h"
 #include "HierarchyBuilder.h"
 
@@ -1597,7 +1596,7 @@ void doIndexing(string targetDir, State& state, Options& options, Sampler& sampl
 	atomic_int64_t activeThreads = 0;
 	mutex mtx_nodes;
 	vector<shared_ptr<Node>> nodes;
-	const int numThreads = numSampleThreads() + 4;
+	const int numThreads = getCpuData().numProcessors + 4;
 	TaskPool<Task> pool(numThreads, [&onNodeCompleted, &onNodeDiscarded, &writeAndUnload, &state, &options, &activeThreads, tStart, &lastReport, &totalPoints, totalBytes, &pointsProcessed, chunks, &indexer, &nodes, &mtx_nodes, &sampler](auto task) {
 
 		auto chunk = task->chunk;

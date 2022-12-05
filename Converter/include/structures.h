@@ -139,16 +139,6 @@ struct Node {
 
 };
 
-struct SamplerState {
-	int bytesPerPoint;
-	double baseSpacing;
-	Vector3 scale;
-	Vector3 offset;
-
-	function<void(Node*)> writeAndUnload;
-};
-
-
 struct Sampler {
 
 

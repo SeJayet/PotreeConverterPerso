@@ -3,14 +3,12 @@
 
 #include <vector>
 #include <string>
-#include <unordered_map>
 #include <iostream>
 
 #include "Vector3.h"
 #include "unsuck/unsuck.hpp"
 
 using std::string;
-using std::unordered_map;
 using std::vector;
 
 enum class AttributeType {
@@ -31,21 +29,21 @@ enum class AttributeType {
 };
 
 inline int getAttributeTypeSize(AttributeType type) {
-	unordered_map<AttributeType, int> mapping = {
-		{AttributeType::UNDEFINED, 0},
-		{AttributeType::UINT8, 1},
-		{AttributeType::UINT16, 2},
-		{AttributeType::UINT32, 4},
-		{AttributeType::UINT64, 8},
-		{AttributeType::INT8, 1},
-		{AttributeType::INT16, 2},
-		{AttributeType::INT32, 4},
-		{AttributeType::INT64, 8},
-		{AttributeType::FLOAT, 4},
-		{AttributeType::DOUBLE, 8},
-	};
-
-	return mapping[type];
+	switch (type)
+	{
+		case AttributeType::INT8  :	return 1;
+		case AttributeType::INT16 :	return 2;
+		case AttributeType::INT32 :	return 4;
+		case AttributeType::INT64 :	return 8;
+		case AttributeType::UINT8 :	return 1;
+		case AttributeType::UINT16:	return 2;
+		case AttributeType::UINT32:	return 4;
+		case AttributeType::UINT64:	return 8;
+		case AttributeType::FLOAT :	return 4;
+		case AttributeType::DOUBLE:	return 8;
+		case AttributeType::UNDEFINED:
+		default: return 0;
+	}
 }
 
 inline string getAttributeTypename(AttributeType type) {
