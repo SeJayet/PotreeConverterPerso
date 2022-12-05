@@ -5,20 +5,6 @@
 #include "Vector3.h"
 #include "LasLoader/LasLoader.h"
 
-struct Dbg {
-
-	bool isDebug = false;
-
-	static Dbg* instance() {
-
-		static Dbg* inst = new Dbg();
-
-		return inst;
-	}
-
-};
-
-
 struct ScaleOffset {
 	Vector3 scale;
 	Vector3 offset;
@@ -26,44 +12,41 @@ struct ScaleOffset {
 
 
 inline ScaleOffset computeScaleOffset(Vector3 min, Vector3 max, Vector3 targetScale) {
-
-	const Vector3 center = (min + max) / 2.0;
-
 	// using the center as the origin would be the "right" choice but
 	// it would lead to negative integer coordinates.
 	// since the Potree 1.7 release mistakenly interprets the coordinates as uint values,
 	// we can't do that and we use 0/0/0 as the bounding box minimum as the origin instead.
+	//const Vector3 center = (min + max) / 2.0;
 	//Vector3 offset = center;
 
-	const Vector3 offset = min;
-	Vector3 scale = targetScale;
 	const Vector3 size = max - min;
 
 	// we can only use 31 bits because of the int/uint mistake in Potree 1.7
-	// And we only use 30 bits to be on the safe sie.
-	const double min_scale_x = size.x / pow(2.0, 30.0);
-	const double min_scale_y = size.y / pow(2.0, 30.0);
-	const double min_scale_z = size.z / pow(2.0, 30.0);
-
-	scale.x = std::max(scale.x, min_scale_x);
-	scale.y = std::max(scale.y, min_scale_y);
-	scale.z = std::max(scale.z, min_scale_z);
+	// And we only use 30 bits to be on the safe side.
+	constexpr auto interval_30_bits = 0b1'000'000'000'000'000'000'000'000'000'000; // 30 '0's
+	const double min_scale_x = size.x / interval_30_bits;
+	const double min_scale_y = size.y / interval_30_bits;
+	const double min_scale_z = size.z / interval_30_bits;
 
 	ScaleOffset scaleOffset;
-	scaleOffset.scale = scale;
-	scaleOffset.offset = offset;
+	scaleOffset.scale = {
+		std::max(targetScale.x, min_scale_x),
+		std::max(targetScale.y, min_scale_y),
+		std::max(targetScale.z, min_scale_z),
+	};
+	scaleOffset.offset = min;
 
 	return scaleOffset;
 }
 
 
 
-inline vector<Attribute> parseExtraAttributes(LasHeader& header) {
+inline vector<Attribute> parseExtraAttributes(const LasHeader& header) {
 
 	// vector<uint8_t> extraData;
 	vector<Attribute> attributes;
 
-	for (auto& vlr : header.vlrs) {
+	for (auto && vlr : header.vlrs) {
 		if (vlr.recordID == 4) {
 			auto extraData = vlr.data;
 
@@ -112,7 +95,7 @@ inline vector<Attribute> parseExtraAttributes(LasHeader& header) {
 }
 
 
-inline vector<Attribute> computeOutputAttributes(LasHeader& header) {
+inline vector<Attribute> computeOutputAttributes(const LasHeader& header) {
 	const auto format = header.pointDataFormat;
 
 	Attribute xyz("position", 12, 3, 4, AttributeType::INT32);
@@ -171,7 +154,7 @@ inline vector<Attribute> computeOutputAttributes(LasHeader& header) {
 	return list;
 }
 
-inline Attributes computeOutputAttributes(vector<Source>& sources, vector<string> requestedAttributes) {
+inline Attributes computeOutputAttributes(const vector<Source>& sources, vector<string> requestedAttributes) {
 	// TODO: a bit wasteful to iterate over source files and load headers twice
 
 	Vector3 scaleMin = { Infinity, Infinity, Infinity };
@@ -186,15 +169,15 @@ inline Attributes computeOutputAttributes(vector<Source>& sources, vector<string
 	{
 		mutex mtx;
 		constexpr auto parallel = std::execution::par;
-		for_each(parallel, sources.begin(), sources.end(), [&mtx, &sources, &scaleMin, &min, &max, requestedAttributes, &fullAttributeList, &acceptedAttributeNames](Source source) {
+		for_each(parallel, sources.begin(), sources.end(), [&mtx, &scaleMin, &min, &max, &fullAttributeList, &acceptedAttributeNames](const Source &source) {
 
-			auto header = loadLasHeader(source.path);
+			const auto header = loadLasHeader(source.path);
 
 			vector<Attribute> attributes = computeOutputAttributes(header);
 
 			mtx.lock();
 
-			for (auto& attribute : attributes) {
+			for (auto && attribute : attributes) {
 				bool alreadyAdded = acceptedAttributeNames.find(attribute.name) != acceptedAttributeNames.end();
 
 				if (!alreadyAdded) {
@@ -260,7 +243,7 @@ inline Attributes computeOutputAttributes(vector<Source>& sources, vector<string
 	return attributes;
 }
 
-inline string toString(Attributes& attributes){
+inline string toString(const Attributes& attributes){
 
 	stringstream ss;
 

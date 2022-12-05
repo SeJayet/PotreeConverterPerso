@@ -302,11 +302,9 @@ inline bool icompare_pred(unsigned char a, unsigned char b) {
 
 // see https://stackoverflow.com/questions/23943728/case-insensitive-standard-string-comparison-in-c
 inline bool icompare(std::string const& a, std::string const& b) {
-	if (a.length() == b.length()) {
-		return std::equal(b.begin(), b.end(), a.begin(), icompare_pred);
-	} else {
+	if (a.length() != b.length())
 		return false;
-	}
+	return std::equal(b.begin(), b.end(), a.begin(), icompare_pred);
 }
 
 
@@ -327,7 +325,7 @@ inline bool iEndsWith(const std::string& str, const std::string& suffix) {
 		return false;
 	}
 
-	auto tstr = str.substr(str.size() - suffix.size());
+	const auto tstr = str.substr(str.size() - suffix.size());
 
 	return icompare(tstr, suffix);
 }

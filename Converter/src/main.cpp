@@ -134,59 +134,54 @@ struct Curated{
 	string name;
 	vector<Source> files;
 };
-Curated curateSources(vector<string> paths) {
+Curated curateSources(const vector<string> &paths) {
 
-	string name = "";
+	Curated curated;
 
 	vector<string> expanded;
-	for (auto path : paths) {
+	for (auto && path : paths) {
 		if (fs::is_directory(path)) {
-			for (auto& entry : fs::directory_iterator(path)) {
-				string str = entry.path().string();
-
+			for (auto && entry : fs::directory_iterator(path)) {
+				const string str = entry.path().string();
 				if (iEndsWith(str, "las") || iEndsWith(str, "laz")) {
 					expanded.push_back(str);
 				}
 			}
-		} else if (fs::is_regular_file(path)) {
+		}
+		else if (fs::is_regular_file(path)) {
 			if (iEndsWith(path, "las") || iEndsWith(path, "laz")) {
 				expanded.push_back(path);
 			}
 		}
 
-		if (name.size() == 0) {
-			name = fs::path(path).stem().string();
+		if (curated.name.empty()) {
+			curated.name = fs::path(path).stem().string();
 		}
 	}
-	paths = expanded;
 
-	cout << "#paths: " << paths.size() << endl;
+	cout << "#paths: " << expanded.size() << endl;
 
-	vector<Source> sources;
-	sources.reserve(paths.size());
+	auto &sources = curated.files;
+	sources.reserve(expanded.size());
 
 	mutex mtx;
 	constexpr auto parallel = std::execution::par;
-	for_each(parallel, paths.begin(), paths.end(), [&mtx, &sources](string path) {
+	for_each(parallel, expanded.begin(), expanded.end(), [&mtx, &sources](string path) {
 
-		auto header = loadLasHeader(path);
-		auto filesize = fs::file_size(path);
-
-		const Vector3 min = { header.min.x, header.min.y, header.min.z };
-		const Vector3 max = { header.max.x, header.max.y, header.max.z };
+		const auto header = loadLasHeader(path);
 
 		Source source;
 		source.path = path;
-		source.min = min;
-		source.max = max;
+		source.min = { header.min.x, header.min.y, header.min.z };
+		source.max = { header.max.x, header.max.y, header.max.z };
 		source.numPoints = header.numPoints;
-		source.filesize = filesize;
+		source.filesize = fs::file_size(path);
 
 		lock_guard<mutex> lock(mtx);
 		sources.push_back(source);
 	});
 
-	return {name, sources};
+	return curated;
 }
 
 struct Stats {
@@ -448,7 +443,7 @@ int main(int argc, char** argv) {
 		options.name = name;
 	}
 
-	auto outputAttributes = computeOutputAttributes(sources, options.attributes);
+	const auto outputAttributes = computeOutputAttributes(sources, options.attributes);
 	cout << toString(outputAttributes);
 
 	auto stats = computeStats(sources);
