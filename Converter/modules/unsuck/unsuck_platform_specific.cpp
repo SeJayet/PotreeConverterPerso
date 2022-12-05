@@ -6,6 +6,7 @@
 	#include "windows.h"
 	#include "psapi.h"
 
+#ifdef _DEBUG
 // see https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
 MemoryData getMemoryData() {
 
@@ -15,22 +16,18 @@ MemoryData getMemoryData() {
 		MEMORYSTATUSEX memInfo;
 		memInfo.dwLength = sizeof(MEMORYSTATUSEX);
 		GlobalMemoryStatusEx(&memInfo);
-		const DWORDLONG totalVirtualMem = memInfo.ullTotalPageFile;
-		const DWORDLONG virtualMemUsed = memInfo.ullTotalPageFile - memInfo.ullAvailPageFile;;
-		const DWORDLONG totalPhysMem = memInfo.ullTotalPhys;
-		const DWORDLONG physMemUsed = memInfo.ullTotalPhys - memInfo.ullAvailPhys;
 
-		data.virtual_total = totalVirtualMem;
-		data.virtual_used = virtualMemUsed;
+		data.virtual_total = memInfo.ullTotalPageFile;
+		data.virtual_used = memInfo.ullTotalPageFile - memInfo.ullAvailPageFile;
 
-		data.physical_total = totalPhysMem;
-		data.physical_used = physMemUsed;
+		data.physical_total = memInfo.ullTotalPhys;
+		data.physical_used = memInfo.ullTotalPhys - memInfo.ullAvailPhys;
 
 	}
 
 	{
 		PROCESS_MEMORY_COUNTERS_EX pmc;
-		GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
+		GetProcessMemoryInfo(GetCurrentProcess(), reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&pmc), sizeof(pmc));
 		const SIZE_T virtualMemUsedByMe = pmc.PrivateUsage;
 		const SIZE_T physMemUsedByMe = pmc.WorkingSetSize;
 
@@ -45,7 +42,6 @@ MemoryData getMemoryData() {
 		data.physical_usedByProcess = physMemUsedByMe;
 		data.physical_usedByProcess_max = physicalUsedMax;
 	}
-
 
 	return data;
 }
@@ -67,21 +63,14 @@ void printMemoryReport() {
 
 }
 
-void launchMemoryChecker(int64_t maxMB, double checkInterval) {
+void launchMemoryChecker(double checkInterval) {
 
 	const auto interval = std::chrono::milliseconds(int64_t(checkInterval * 1000));
 
-	thread t([maxMB, interval]() {
-
-		static double lastReport = 0.0;
-		static double reportInterval = 1.0;
-		static double lastUsage = 0.0;
-		static double largestUsage = 0.0;
+	thread t([interval]() {
 
 		while (true) {
-			auto memdata = getMemoryData();
-
-			using namespace std::chrono_literals;
+			const auto memdata = getMemoryData();
 			std::this_thread::sleep_for(interval);
 		}
 
@@ -89,6 +78,7 @@ void launchMemoryChecker(int64_t maxMB, double checkInterval) {
 	t.detach();
 
 }
+#endif // _DEBUG
 
 static ULARGE_INTEGER lastCPU, lastSysCPU, lastUserCPU;
 static int numProcessors;
@@ -204,6 +194,7 @@ int64_t getPhysicalMemoryUsedByProcess(){ //Note: this value is in KB!
 }
 
 
+#ifdef _DEBUG
 MemoryData getMemoryData() {
 
 	struct sysinfo memInfo;
@@ -271,21 +262,14 @@ void printMemoryReport() {
 
 }
 
-void launchMemoryChecker(int64_t maxMB, double checkInterval) {
+void launchMemoryChecker(double checkInterval) {
 
 	auto interval = std::chrono::milliseconds(int64_t(checkInterval * 1000));
 
-	thread t([maxMB, interval]() {
-
-		static double lastReport = 0.0;
-		static double reportInterval = 1.0;
-		static double lastUsage = 0.0;
-		static double largestUsage = 0.0;
+	thread t([interval]() {
 
 		while (true) {
-			auto memdata = getMemoryData();
-
-			using namespace std::chrono_literals;
+			const auto memdata = getMemoryData();
 			std::this_thread::sleep_for(interval);
 		}
 
@@ -293,6 +277,7 @@ void launchMemoryChecker(int64_t maxMB, double checkInterval) {
 	t.detach();
 
 }
+#endif // _DEBUG
 
 static int numProcessors;
 static bool initialized = false;

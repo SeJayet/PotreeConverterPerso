@@ -68,7 +68,7 @@ CpuData getCpuData();
 
 void printMemoryReport();
 
-void launchMemoryChecker(int64_t maxMB, double checkInterval);
+void launchMemoryChecker(double checkInterval);
 
 class punct_facet : public std::numpunct<char> {
 protected:

@@ -432,17 +432,19 @@ int main(int argc, char** argv) {
 
 	const double tStart = now();
 
-	auto exePath = fs::canonical(fs::absolute(argv[0])).parent_path().string();
+	const auto exePath = fs::canonical(fs::absolute(argv[0])).parent_path().string();
 
-	launchMemoryChecker(2 * 1024, 0.1);
-	auto cpuData = getCpuData();
+#ifdef _DEBUG
+	launchMemoryChecker(0.1);
+#endif // _DEBUG
+	const auto cpuData = getCpuData();
 
 	cout << "#threads: " << cpuData.numProcessors << endl;
 
 	auto options = parseArguments(argc, argv);
 
 	auto [name, sources] = curateSources(options.source);
-	if (options.name.size() == 0) {
+	if (options.name.empty()) {
 		options.name = name;
 	}
 
