@@ -6,7 +6,6 @@
 	#include "windows.h"
 	#include "psapi.h"
 
-#ifdef _DEBUG
 // see https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
 MemoryData getMemoryData() {
 
@@ -47,6 +46,7 @@ MemoryData getMemoryData() {
 }
 
 
+#ifdef _DEBUG
 void printMemoryReport() {
 
 	const auto memoryData = getMemoryData();
@@ -194,7 +194,6 @@ int64_t getPhysicalMemoryUsedByProcess(){ //Note: this value is in KB!
 }
 
 
-#ifdef _DEBUG
 MemoryData getMemoryData() {
 
 	struct sysinfo memInfo;
@@ -246,6 +245,7 @@ MemoryData getMemoryData() {
 }
 
 
+#ifdef _DEBUG
 void printMemoryReport() {
 
 	auto memoryData = getMemoryData();

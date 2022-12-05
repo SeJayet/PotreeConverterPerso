@@ -191,34 +191,29 @@ struct Stats {
 	int64_t totalPoints = 0;
 };
 
-Stats computeStats(vector<Source> sources){
+Stats computeStats(const vector<Source> &sources){
+	Stats stats;
 
-	Vector3 min = { Infinity , Infinity , Infinity };
-	Vector3 max = { -Infinity , -Infinity , -Infinity };
+	for(auto && source : sources){
+		stats.min.x = std::min(stats.min.x, source.min.x);
+		stats.min.y = std::min(stats.min.y, source.min.y);
+		stats.min.z = std::min(stats.min.z, source.min.z);
 
-	int64_t totalBytes = 0;
-	int64_t totalPoints = 0;
+		stats.max.x = std::max(stats.max.x, source.max.x);
+		stats.max.y = std::max(stats.max.y, source.max.y);
+		stats.max.z = std::max(stats.max.z, source.max.z);
 
-	for(auto source : sources){
-		min.x = std::min(min.x, source.min.x);
-		min.y = std::min(min.y, source.min.y);
-		min.z = std::min(min.z, source.min.z);
-
-		max.x = std::max(max.x, source.max.x);
-		max.y = std::max(max.y, source.max.y);
-		max.z = std::max(max.z, source.max.z);
-
-		totalPoints += source.numPoints;
-		totalBytes += source.filesize;
+		stats.totalPoints += source.numPoints;
+		stats.totalBytes += source.filesize;
 	}
 
-
-	const double cubeSize = (max - min).max();
+	const double cubeSize = (stats.max - stats.min).max();
 	const Vector3 size = { cubeSize, cubeSize, cubeSize };
-	max = min + cubeSize;
+	stats.max = stats.min + cubeSize;
 
-	const string strMin = "[" + to_string(min.x) + ", " + to_string(min.y) + ", " + to_string(min.z) + "]";
-	const string strMax = "[" + to_string(max.x) + ", " + to_string(max.y) + ", " + to_string(max.z) + "]";
+#ifdef _DEBUG
+	const string strMin = "[" + to_string(stats.min.x) + ", " + to_string(stats.min.y) + ", " + to_string(stats.min.z) + "]";
+	const string strMax = "[" + to_string(stats.max.x) + ", " + to_string(stats.max.y) + ", " + to_string(stats.max.z) + "]";
 	const string strSize = "[" + to_string(size.x) + ", " + to_string(size.y) + ", " + to_string(size.z) + "]";
 
 	string strTotalFileSize;
@@ -228,15 +223,10 @@ Stats computeStats(vector<Source> sources){
 		constexpr int64_t GB = 1024 * MB;
 		constexpr int64_t TB = 1024 * GB;
 
-		if (totalBytes >= TB) {
-			strTotalFileSize = formatNumber(double(totalBytes) / double(TB), 1) + " TB";
-		} else if (totalBytes >= GB) {
-			strTotalFileSize = formatNumber(double(totalBytes) / double(GB), 1) + " GB";
-		} else if (totalBytes >= MB) {
-			strTotalFileSize = formatNumber(double(totalBytes) / double(MB), 1) + " MB";
-		} else {
-			strTotalFileSize = formatNumber(double(totalBytes), 1) + " bytes";
-		}
+		if (stats.totalBytes >= TB)	strTotalFileSize = formatNumber(double(stats.totalBytes) / double(TB), 1) + " TB";
+		else if (stats.totalBytes >= GB)	strTotalFileSize = formatNumber(double(stats.totalBytes) / double(GB), 1) + " GB";
+		else if (stats.totalBytes >= MB)	strTotalFileSize = formatNumber(double(stats.totalBytes) / double(MB), 1) + " MB";
+		else	strTotalFileSize = formatNumber(double(stats.totalBytes), 1) + " bytes";
 	}
 
 	cout << "cubicAABB: {\n";
@@ -245,8 +235,9 @@ Stats computeStats(vector<Source> sources){
 	cout << "	\"size\": " << strSize << "\n";
 	cout << "}\n";
 
-	cout << "#points: " << formatNumber(totalPoints) << endl;
+	cout << "#points: " << formatNumber(stats.totalPoints) << endl;
 	cout << "total file size: " << strTotalFileSize << endl;
+#endif // _DEBUG
 
 	{ //	sanity check
 		const bool sizeError = (size.x == 0.0) || (size.y == 0.0) || (size.z == 0);
@@ -258,10 +249,10 @@ Stats computeStats(vector<Source> sources){
 
 	}
 
-	return { min, max, totalBytes, totalPoints };
+	return stats;
 }
 
-void chunking(Options& options, vector<Source>& sources, string targetDir, Stats& stats, State& state, Attributes outputAttributes, Monitor* monitor) {
+void chunking(const Options& options, const vector<Source>& sources, const string &targetDir, const Stats& stats, State& state, Attributes &outputAttributes) {
 
 	if (options.noChunking) {
 		return;
@@ -269,7 +260,7 @@ void chunking(Options& options, vector<Source>& sources, string targetDir, Stats
 
 	if (options.chunkMethod == "LASZIP") {
 
-		chunker_countsort_laszip::doChunking(sources, targetDir, stats.min, stats.max, state, outputAttributes, monitor);
+		chunker_countsort_laszip::doChunking(sources, targetDir, stats.min, stats.max, state, outputAttributes);
 
 	} else if (options.chunkMethod == "LAS_CUSTOM") {
 	} else if (options.chunkMethod == "SKIP") {
@@ -308,7 +299,7 @@ void indexing(Options& options, string targetDir, State& state) {
 	}
 }
 
-void createReport(Options& options, vector<Source> sources, string targetDir, Stats& stats, State& state, double tStart) {
+void createReport(const Options& options, const vector<Source> &sources, const string &targetDir, const Stats& stats, const State& state, double tStart) {
 	const double duration = now() - tStart;
 	const double throughputMB = (stats.totalBytes / duration) / (1024 * 1024);
 	const double throughputP = (double(stats.totalPoints) / double(duration)) / 1'000'000.0;
@@ -321,13 +312,16 @@ void createReport(Options& options, vector<Source> sources, string targetDir, St
 	if (stats.totalBytes <= 10.0 * kb) {
 		inputSize = stats.totalBytes / kb;
 		inputSizeUnit = "KB";
-	} else if (stats.totalBytes <= 10.0 * mb) {
+	}
+	else if (stats.totalBytes <= 10.0 * mb) {
 		inputSize = stats.totalBytes / mb;
 		inputSizeUnit = "MB";
-	} else if (stats.totalBytes <= 10.0 * gb) {
+	}
+	else if (stats.totalBytes <= 10.0 * gb) {
 		inputSize = stats.totalBytes / gb;
 		inputSizeUnit = "GB";
-	} else {
+	}
+	else {
 		inputSize = stats.totalBytes / gb;
 		inputSizeUnit = "GB";
 	}
@@ -354,7 +348,7 @@ void createReport(Options& options, vector<Source> sources, string targetDir, St
 
 }
 
-void generatePage(string exePath, string pagedir, string pagename) {
+void generatePage(const string &exePath, const string &pagedir, const string &pagename) {
 	const string templateDir = exePath + "/resources/page_template";
 	const string templateSourcePath = templateDir + "/viewer_template.html";
 
@@ -443,17 +437,16 @@ int main(int argc, char** argv) {
 		options.name = name;
 	}
 
-	const auto outputAttributes = computeOutputAttributes(sources, options.attributes);
+	auto outputAttributes = computeOutputAttributes(sources, options.attributes);
 	cout << toString(outputAttributes);
 
-	auto stats = computeStats(sources);
+	const auto stats = computeStats(sources);
 	string targetDir = options.outdir;
 	if (options.generatePage) {
 
-		string pagedir = targetDir;
-		generatePage(exePath, pagedir, options.pageName);
+		generatePage(exePath, targetDir, options.pageName);
 
-		targetDir = targetDir + "/pointclouds/" + options.pageName;
+		targetDir += "/pointclouds/" + options.pageName;
 	}
 	cout << "target directory: '" << targetDir << "'" << endl;
 	fs::create_directories(targetDir);
@@ -469,7 +462,7 @@ int main(int argc, char** argv) {
 
 	{ //	this is the real important stuff
 
-		chunking(options, sources, targetDir, stats, state, outputAttributes, monitor.get());
+		chunking(options, sources, targetDir, stats, state, outputAttributes);
 
 		indexing(options, targetDir, state);
 

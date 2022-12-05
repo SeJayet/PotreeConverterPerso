@@ -124,7 +124,7 @@ namespace chunker_countsort_laszip {
 		vector<int> grid;
 	};
 
-	vector<std::atomic_int32_t> countPointsInCells(vector<Source> sources, Vector3 min, Vector3 max, int64_t gridSize, State& state, Attributes& outputAttributes, Monitor* monitor) {
+	vector<std::atomic_int32_t> countPointsInCells(const vector<Source> &sources, Vector3 min, Vector3 max, int64_t gridSize, State& state, const Attributes& outputAttributes) {
 
 		cout << endl;
 		cout << "=======================================" << endl;
@@ -149,7 +149,7 @@ namespace chunker_countsort_laszip {
 			Vector3 max;
 		};
 
-		const auto processor = [gridSize, &grid, tStart, &state, &outputAttributes, monitor](shared_ptr<Task> task){
+		const auto processor = [gridSize, &grid, tStart, &state, &outputAttributes](shared_ptr<Task> task){
 			const string path = task->path;
 			const int64_t start = task->firstByte;
 			const int64_t numBytes = task->numBytes;
@@ -265,7 +265,7 @@ namespace chunker_countsort_laszip {
 
 		const auto tStartTaskAssembly = now();
 
-		for (auto source : sources) {
+		for (auto && source : sources) {
 			laszip_POINTER laszip_reader;
 			laszip_header* header;
 			{
@@ -638,7 +638,7 @@ namespace chunker_countsort_laszip {
 
 	}
 
-	void distributePoints(vector<Source> sources, Vector3 min, Vector3 max, string targetDir, NodeLUT& lut, State& state, Attributes& outputAttributes, Monitor* monitor) {
+	void distributePoints(const vector<Source> &sources, Vector3 min, Vector3 max, const string &targetDir, NodeLUT& lut, State& state, Attributes& outputAttributes) {
 
 		cout << endl;
 		cout << "=======================================" << endl;
@@ -980,14 +980,14 @@ namespace chunker_countsort_laszip {
 		cout << "=======================================" << endl;
 	}
 
-	void writeMetadata(string path, Vector3 min, Vector3 max, Attributes& attributes) {
+	void writeMetadata(const string &path, Vector3 min, Vector3 max, const Attributes& attributes) {
 		json js;
 
 		js["min"] = { min.x, min.y, min.z };
 		js["max"] = { max.x, max.y, max.z };
 
 		js["attributes"] = {};
-		for (auto attribute : attributes.list) {
+		for (auto && attribute : attributes.list) {
 
 			json jsAttribute;
 			jsAttribute["name"] = attribute.name;
@@ -1181,7 +1181,7 @@ namespace chunker_countsort_laszip {
 		return {gridSize, lut};
 	}
 
-	void doChunking(vector<Source> sources, string targetDir, Vector3 min, Vector3 max, State& state, Attributes outputAttributes, Monitor* monitor) {
+	void doChunking(const vector<Source> &sources, const string &targetDir, Vector3 min, Vector3 max, State& state, Attributes &outputAttributes) {
 
 		const auto tStart = now();
 
@@ -1211,7 +1211,7 @@ namespace chunker_countsort_laszip {
 		}
 
 		// COUNT
-		auto grid = countPointsInCells(sources, min, max, gridSize, state, outputAttributes, monitor);
+		auto grid = countPointsInCells(sources, min, max, gridSize, state, outputAttributes);
 
 		{ // DISTIRBUTE
 			const auto tStartDistribute = now();
@@ -1219,7 +1219,7 @@ namespace chunker_countsort_laszip {
 			auto lut = createLUT(grid, gridSize);
 
 			state.currentPass = 2;
-			distributePoints(sources, min, max, targetDir, lut, state, outputAttributes, monitor);
+			distributePoints(sources, min, max, targetDir, lut, state, outputAttributes);
 
 			{
 				const double duration = now() - tStartDistribute;
