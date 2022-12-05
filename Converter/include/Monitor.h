@@ -53,10 +53,7 @@ struct Monitor {
 
 		Monitor* _this = this;
 		this->t = thread([_this]() {
-
-			using namespace std::chrono_literals;
-
-			std::this_thread::sleep_for(1'000ms);
+			std::this_thread::sleep_for(std::chrono::seconds(1));
 			
 			cout << endl;
 
@@ -64,7 +61,7 @@ struct Monitor {
 
 				_this->_print();
 
-				std::this_thread::sleep_for(1'000ms);
+				std::this_thread::sleep_for(std::chrono::seconds(1));
 			}
 
 		});
